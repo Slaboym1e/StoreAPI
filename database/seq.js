@@ -12,7 +12,20 @@ const sequelize = new Sequelize(
         min: 0,
         idle: 10000
       },
+      logQueryParameters: true,
+	  benchmark: true
     }
 )
+
+const modelDefs = [
+    require("./models/user.model"),
+    require("./models/store.model"),
+    require("./models/place.store.model"),
+
+];
+
+for( const modelDef of modelDefs) {
+    modelDef(sequelize);
+}
 
 module.exports = sequelize;

@@ -8,6 +8,7 @@ const PORT = process.env.DEV_PORT;
 const connectDB = async () =>{
     try{
         await sequelize.authenticate();
+        await sequelize.sync();
         console.log('Database Connection: OK');
     } catch (err){
         console.log('Database Connection: ERROR');
