@@ -1,4 +1,5 @@
 const {Sequelize} = require("sequelize");
+const {extraSetup} = require("./extras");
 
 const sequelize = new Sequelize(
     process.env.DATABASE,
@@ -27,5 +28,7 @@ const modelDefs = [
 for( const modelDef of modelDefs) {
     modelDef(sequelize);
 }
+
+extraSetup(sequelize);
 
 module.exports = sequelize;

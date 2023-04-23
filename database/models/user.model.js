@@ -23,6 +23,10 @@ module.exports = (sequelize) =>{
         password:{
             allowNull:false,
             type: DataTypes.STRING(64)
+        },
+        salt:{
+            allowNull:false,
+            type: DataTypes.STRING(32)
         }
 
     })
