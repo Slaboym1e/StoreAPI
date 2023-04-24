@@ -55,15 +55,16 @@ app.post("/signup", async (req, res)=>{
                 salt: salt
             }, { transaction: t });
             await t.commit();
+            const jwt = jwtCreate({email: User.email, id: User.id}, '1h');
+            const rt = jwtCreate({refresh: User.last_refresh, id: User.id}, '2 days');
+            return res.status(201).json({signup:true, rt: rt, jwt: jwt});
         }
         catch(err){
             t.rollback();
             console.log(`SIGNUP ERROR: ${err}`);
             return res.status(200).json({signup:false, message: "unexpected"});
         }   
-        const jwt = jwtCreate({email: User.email, id: User.id}, '1h');
-        const rt = jwtCreate({refresh: User.last_refresh, id: User.id}, '2 days');
-        return res.status(201).json({signup:true, rt: rt, jwt: jwt});
+
 })
 
 module.exports = app;
