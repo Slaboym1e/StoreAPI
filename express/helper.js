@@ -1,3 +1,4 @@
+const jsonwebtoken = require("jsonwebtoken");
 
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -12,11 +13,12 @@ function generateString(length) {
 }
 
 //'2 days'
-const jwtCreate = (user, exp) =>{
+const jwtCreate = (payload, exp) =>{
     try{
-        let token = jsonwebtoken.sign({email: user.email, id: user.id, iat: Math.floor(Date.now())},process.env.SECRET, {expiresIn:  exp})
+        let token = jsonwebtoken.sign({payload: payload, iat: Math.floor(Date.now())},process.env.SECRET, {expiresIn:  exp})
         return token;
     } catch(e){
+        console.log(e);
         return undefined;
     }
 }
@@ -26,7 +28,7 @@ const jwtVerify = (token) =>{
         let decoded = jsonwebtoken.verify(token, process.env.SECRET_KEY);
         return {valid:true, data: decoded};
     }catch(e){
-        console.log("Token invalid");
+        console.log(e);
         return {valid: false};
     }
 }
@@ -40,8 +42,8 @@ const authVerify = async (req, res, next) =>{
         return res.status(401).json({response: false, message: "Bad token"});
     let user = await User.findOne({
         where:{
-            email: verifyData.data.email,
-            id: verifyData.data.id
+            email: verifyData.data.payload.email,
+            id: verifyData.data.payload.id
         }
     })
     console.log(user);
@@ -51,6 +53,11 @@ const authVerify = async (req, res, next) =>{
     next();
 }
 
+function isEmail(email) {
+    var emailFormat = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+    if (email !== '' && email.match(emailFormat)) { return true; }
+    
+    return false;
+}
 
-
-module.exports = {generateString, jwtCreate, jwtVerify, authVerify};
+module.exports = {generateString, jwtCreate, jwtVerify, authVerify, isEmail};

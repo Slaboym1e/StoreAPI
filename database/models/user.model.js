@@ -27,6 +27,11 @@ module.exports = (sequelize) =>{
         salt:{
             allowNull:false,
             type: DataTypes.STRING(32)
+        },
+        last_refresh:{
+            allowNull:false,
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW
         }
 
     })
