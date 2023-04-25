@@ -6,15 +6,53 @@ const {Op} = require("sequelize");
 const {generateString, isEmail, jwtCreate} = require("../helper");
 const sequelize = require("../../database/seq");
 
-const sha256Hasher = crypto.createHmac("sha256", process.env.SECRET);
+const createSession = async (User) =>{
+    const t = await sequelize.transaction();
+    try{
+        const session = await models.UserSession.create({
+            UserId: User.id
+        }, {transaction: t});
+        t.commit();
+        const jwt = jwtCreate({userId:User.id, sessionRefresh: session.last_refresh, sessionId: session.id }, '1h');
+        const rt = jwtCreate({sessionId: session.id, sessionRefresh: session.last_refresh, userId: User.id, refresh:true}, '2 days');
+        return {jwt:jwt, rt:rt};
+    }
+    catch(err){
+        t.rollback();
+        return undefined;
+    }
+}
 
-app.post("/signin", (req, res) =>{
+app.post("/signin", async (req, res) =>{
     if(!!!req.body.email || !!!req.body.password)
-    return res.status(400).json({signup:false, message: "empty request"});
+    return res.status(400).json({signin:false, message: "empty request"});
     if(!isEmail(req.body.email))
-        return res.status(200).json({signup:false, msg:"incorrect email address"});
+        return res.status(200).json({signin:false, msg:"incorrect email address"});
     if(req.body.password.length < 8)
-        return res.status(200).json({signup:false, msg:"wrong password"});
+        return res.status(200).json({signin:false, msg:"incorrect password"});
+    try{
+        const User = await models.User.findOne({
+            where:{
+                email: req.body.email
+            }
+        })
+        if(!!!User){
+            return res.status(200).json({signin:false, msg:"user not found"});
+        }
+        const sha256Hasher = crypto.createHmac("sha256", process.env.SECRET);
+        const passhash = sha256Hasher.update(req.body.password);
+        const passsalt = passhash + User.salt;
+        const hash = sha256Hasher.update(passsalt).digest("hex");
+        if(hash !== User.password){
+            return res.status(200).json({signin:false, msg:"wrong password"});
+        }
+        const session = await createSession(User);
+        return res.status(200).json({signup:true, session: session});
+    }
+    catch(err){
+        console.log(`SIGNIN ERROR: ${err}`);
+        return res.status(200).json({signin:false, message: "unexpected"}); 
+    }
     
 })
 
@@ -41,7 +79,7 @@ app.post("/signup", async (req, res)=>{
             }
         if(req.body.password !== req.body.repassword)
             return res.status(200).json({signup:false, message: "passwords not equal"});
-
+        const sha256Hasher = crypto.createHmac("sha256", process.env.SECRET);
         const salt = generateString(31);
         const passhash = sha256Hasher.update(req.body.password);
         const passsalt = passhash + salt;
@@ -55,9 +93,9 @@ app.post("/signup", async (req, res)=>{
                 salt: salt
             }, { transaction: t });
             await t.commit();
-            const jwt = jwtCreate({email: User.email, id: User.id}, '1h');
-            const rt = jwtCreate({refresh: User.last_refresh, id: User.id}, '2 days');
-            return res.status(201).json({signup:true, rt: rt, jwt: jwt});
+            const session = await createSession(User);
+            console.log(session);
+            return res.status(201).json({signup:true, session:session});
         }
         catch(err){
             t.rollback();

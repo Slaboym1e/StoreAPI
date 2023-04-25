@@ -1,4 +1,5 @@
 const jsonwebtoken = require("jsonwebtoken");
+const {models} = require("../database/seq");
 
 const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -12,7 +13,6 @@ function generateString(length) {
     return result;
 }
 
-//'2 days'
 const jwtCreate = (payload, exp) =>{
     try{
         let token = jsonwebtoken.sign({payload: payload, iat: Math.floor(Date.now())},process.env.SECRET, {expiresIn:  exp})
@@ -40,14 +40,16 @@ const authVerify = async (req, res, next) =>{
     let verifyData = jwtverify(authHeader);
     if (!verifyData.valid)
         return res.status(401).json({response: false, message: "Bad token"});
-    let user = await User.findOne({
+    if(!!verifyData.data.payload.refresh && verifyData.data.payload.refresh)
+        return res.status(401).json({response: false, message: "Incorrect token"});
+    const session = await models.UserSession.findOne({
         where:{
-            email: verifyData.data.payload.email,
-            id: verifyData.data.payload.id
+            id: verifyData.data.payload.sessionId,
+            last_refresh: verifyData.data.payload.sessionRefresh,
+            userId: verifyData.data.payload.userId
         }
-    })
-    console.log(user);
-    if(user == undefined)
+    });
+    if(!!!session)
         return res.status(401).json({response: false, message: "Bad token"});
     req.user = user.dataValues;
     next();
