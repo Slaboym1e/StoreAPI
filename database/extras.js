@@ -6,7 +6,7 @@ const extraSetup = (sequelize) =>{
     });
 
     User.hasMany(UserSession,{
-        foreignKey: 'UserId'
+        foreignKey: 'userId'
     });
     
 }

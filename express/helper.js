@@ -25,10 +25,10 @@ const jwtCreate = (payload, exp) =>{
 
 const jwtVerify = (token) =>{
     try{
-        let decoded = jsonwebtoken.verify(token, process.env.SECRET_KEY);
+        let decoded = jsonwebtoken.verify(token, process.env.SECRET);
         return {valid:true, data: decoded};
     }catch(e){
-        console.log(e);
+        console.log(`JWTVERIFY ERROR: ${e}`);
         return {valid: false};
     }
 }
@@ -37,11 +37,12 @@ const authVerify = async (req, res, next) =>{
     const authHeader = req.headers.authorization;
     if (authHeader == undefined || authHeader == "")
         return res.status(401).json({response: false, message: "Token header not found"});
-    let verifyData = jwtverify(authHeader);
+    let verifyData = jwtVerify(authHeader);
     if (!verifyData.valid)
         return res.status(401).json({response: false, message: "Bad token"});
     if(!!verifyData.data.payload.refresh && verifyData.data.payload.refresh)
         return res.status(401).json({response: false, message: "Incorrect token"});
+    console.log(verifyData.data.payload);
     const session = await models.UserSession.findOne({
         where:{
             id: verifyData.data.payload.sessionId,
@@ -51,7 +52,7 @@ const authVerify = async (req, res, next) =>{
     });
     if(!!!session)
         return res.status(401).json({response: false, message: "Bad token"});
-    req.user = user.dataValues;
+    //req.user = user.dataValues;
     next();
 }
 
@@ -62,4 +63,12 @@ function isEmail(email) {
     return false;
 }
 
-module.exports = {generateString, jwtCreate, jwtVerify, authVerify, isEmail};
+function getIdParam(req) {
+	const id = req.params.id;
+	if (/^\d+$/.test(id)) {
+		return Number.parseInt(id, 10);
+	}
+	throw new TypeError(`Invalid ':id' param: "${id}"`);
+}
+
+module.exports = {generateString, jwtCreate, jwtVerify, authVerify, isEmail, getIdParam};

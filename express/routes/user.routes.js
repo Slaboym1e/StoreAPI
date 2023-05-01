@@ -3,14 +3,14 @@ const express = require('express')
 const app = express.Router()
 const {models} = require("../../database/seq");
 const {Op} = require("sequelize");
-const {generateString, isEmail, jwtCreate} = require("../helper");
+const {generateString, isEmail, jwtCreate, jwtVerify, authVerify, getIdParam} = require("../helper");
 const sequelize = require("../../database/seq");
 
 const createSession = async (User) =>{
     const t = await sequelize.transaction();
     try{
         const session = await models.UserSession.create({
-            UserId: User.id
+            userId: User.id
         }, {transaction: t});
         t.commit();
         const jwt = jwtCreate({userId:User.id, sessionRefresh: session.last_refresh, sessionId: session.id }, '1h');
@@ -20,6 +20,42 @@ const createSession = async (User) =>{
     catch(err){
         t.rollback();
         return undefined;
+    }
+}
+
+const updateSession = async (sessionId) => {
+    const t = await sequelize.transaction();
+    try{
+        const session = await models.UserSession.update({last_refresh: sequelize.literal('CURRENT_TIMESTAMP')},{
+            where:{
+                id:sessionId
+            }
+        }, {transaction: t});
+        await t.commit();
+        console.log(session);
+        return session;
+    }
+    catch(err){
+        await t.rollback();
+        console.log(err);
+        return false;
+    }
+}
+
+const removeSession = async (sessionId) => {
+    const t = await sequelize.transaction();
+    try{
+        await models.UserSession.destroy({
+            where:{
+                id:sessionId
+            }
+        }, {transaction:t});
+        t.commit();
+        return true;
+    }catch(err){
+        t.rollback();
+        console.log(err);
+        return false;
     }
 }
 
@@ -103,6 +139,71 @@ app.post("/signup", async (req, res)=>{
             return res.status(200).json({signup:false, message: "unexpected"});
         }   
 
+})
+
+
+app.post('/refresh', async (req, res)=>{
+    const authHeader = req.headers.rtauthorization;
+    if (authHeader == undefined || authHeader == "")
+        return res.status(401).json({response: false, message: "Token header not found"});
+    let verifyData = jwtVerify(authHeader);
+    if (!verifyData.valid)
+        return res.status(401).json({response: false, message: "Bad token"});
+    if(!!!verifyData.data.payload.refresh || !verifyData.data.payload.refresh)
+        return res.status(401).json({response: false, message: "Incorrect token"});
+    let session = await models.UserSession.findOne({
+        where:{
+            id: verifyData.data.payload.sessionId,
+            last_refresh: verifyData.data.payload.sessionRefresh,
+            userId: verifyData.data.payload.userId
+        }
+    });
+    if(!!!session)
+        return res.status(401).json({response: false, message: "Bad token"});
+    const t = await sequelize.transaction();
+    try{
+        let datetime = new Date().toJSON();
+        const up = await models.UserSession.update({last_refresh: datetime},{
+            where:{
+                id:session.id
+            }
+        }, {transaction:t})
+        await t.commit();
+        const jwt = jwtCreate({userId:session.userId, sessionRefresh: datetime, sessionId: session.id }, '1h');
+        const rt = jwtCreate({sessionId: session.id, sessionRefresh: datetime, userId: session.userId, refresh:true}, '2 days');
+        return res.status(200).json({response:true, session:{jwt:jwt, rt:rt}});
+        
+    }
+    catch(err){
+        await t.rollback();
+        console.log(err);
+        return res.status(401).json({response: false, message: "unexpect"});
+    }
+});
+
+app.post('/logout', (req, res)=>{
+    const authHeader = req.headers.authorization;
+    if (!!!authHeader || authHeader == "")
+        return res.status(401).json({logout: false, message: "Token header not found"});
+    let verifyData = jwtVerify(authHeader);
+    if (!verifyData.valid)
+        return res.status(401).json({logout: false, message: "Bad token"});
+    if(!!verifyData.data.payload.refresh)
+        return res.status(401).json({logout: false, message: "Incorrect token"});
+    if(removeSession(verifyData.data.payload.sessionId))
+        return res.status(200).json({logout:true});
+    return res.status(200).json({logout:false});
+    
+});
+
+app.get('/:id', authVerify, async (req, res)=>{
+    const id = getIdParam(req);
+	const user = await models.User.findByPk(id, {attributes:{exclude:['password', 'salt']}});
+	if (user) {
+		res.status(200).json(user);
+	} else {
+		res.status(404).send('404 - Not found');
+	}
 })
 
 module.exports = app;
