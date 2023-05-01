@@ -10,7 +10,7 @@ const createSession = async (User) =>{
     const t = await sequelize.transaction();
     try{
         const session = await models.UserSession.create({
-            userId: User.id
+            UserId: User.id
         }, {transaction: t});
         t.commit();
         const jwt = jwtCreate({userId:User.id, sessionRefresh: session.last_refresh, sessionId: session.id }, '1h');
@@ -181,16 +181,8 @@ app.post('/refresh', async (req, res)=>{
     }
 });
 
-app.post('/logout', (req, res)=>{
-    const authHeader = req.headers.authorization;
-    if (!!!authHeader || authHeader == "")
-        return res.status(401).json({logout: false, message: "Token header not found"});
-    let verifyData = jwtVerify(authHeader);
-    if (!verifyData.valid)
-        return res.status(401).json({logout: false, message: "Bad token"});
-    if(!!verifyData.data.payload.refresh)
-        return res.status(401).json({logout: false, message: "Incorrect token"});
-    if(removeSession(verifyData.data.payload.sessionId))
+app.post('/logout', authVerify, (req, res)=>{
+    if(removeSession(req.user.id))
         return res.status(200).json({logout:true});
     return res.status(200).json({logout:false});
     
