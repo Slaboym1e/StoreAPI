@@ -5,59 +5,10 @@ const {models} = require("../../database/seq");
 const {Op} = require("sequelize");
 const {generateString, isEmail, jwtCreate, jwtVerify, authVerify, getIdParam} = require("../helper");
 const sequelize = require("../../database/seq");
+const { updateUser, removeUser } = require("../controllers/user.controller");
+const {createSession, removeSession, updateSession} = require("../controllers/session.controller");
 
-const createSession = async (User) =>{
-    const t = await sequelize.transaction();
-    try{
-        const session = await models.UserSession.create({
-            UserId: User.id
-        }, {transaction: t});
-        t.commit();
-        const jwt = jwtCreate({userId:User.id, sessionRefresh: session.last_refresh, sessionId: session.id }, '1h');
-        const rt = jwtCreate({sessionId: session.id, sessionRefresh: session.last_refresh, userId: User.id, refresh:true}, '2 days');
-        return {jwt:jwt, rt:rt};
-    }
-    catch(err){
-        t.rollback();
-        return undefined;
-    }
-}
 
-const updateSession = async (sessionId) => {
-    const t = await sequelize.transaction();
-    try{
-        const session = await models.UserSession.update({last_refresh: sequelize.literal('CURRENT_TIMESTAMP')},{
-            where:{
-                id:sessionId
-            }
-        }, {transaction: t});
-        await t.commit();
-        console.log(session);
-        return session;
-    }
-    catch(err){
-        await t.rollback();
-        console.log(err);
-        return false;
-    }
-}
-
-const removeSession = async (sessionId) => {
-    const t = await sequelize.transaction();
-    try{
-        await models.UserSession.destroy({
-            where:{
-                id:sessionId
-            }
-        }, {transaction:t});
-        t.commit();
-        return true;
-    }catch(err){
-        t.rollback();
-        console.log(err);
-        return false;
-    }
-}
 
 app.post("/signin", async (req, res) =>{
     if(!!!req.body.email || !!!req.body.password)
@@ -181,8 +132,8 @@ app.post('/refresh', async (req, res)=>{
     }
 });
 
-app.post('/logout', authVerify, (req, res)=>{
-    if(removeSession(req.user.id))
+app.post('/logout', authVerify, async (req, res)=>{
+    if(await removeSession(req.user.id))
         return res.status(200).json({logout:true});
     return res.status(200).json({logout:false});
     
@@ -191,11 +142,28 @@ app.post('/logout', authVerify, (req, res)=>{
 app.get('/:id', authVerify, async (req, res)=>{
     const id = getIdParam(req);
 	const user = await models.User.findByPk(id, {attributes:{exclude:['password', 'salt']}});
-	if (user) {
-		res.status(200).json(user);
-	} else {
-		res.status(404).send('404 - Not found');
-	}
+	if (user) res.status(200).json(user);
+	res.status(404).send('404 - Not found');
 })
+
+
+app.put('/:id', authVerify, async (req, res) =>{
+    const data = req.body;
+    if(!!!req.body.userId || req.user.UserId !== req.body.userId)
+        return res.status(400).json({update:false, code:1});
+    if(await updateUser(data.userId, data.username, data.email, data.avatar))
+        return res.status(200).json({update:true});
+    return res.json({update:false, code:2});
+});
+
+app.delete('/:id', authVerify, async(req, res)=>{
+    const id = getIdParam(req);
+    if (id !== req.user.UserId)
+        return res.status(400).json({remove: false, code:1});
+    if(await removeUser(id))
+        return res.json({remove: true});
+    return res.json({remove: false, code: 2});
+    
+} )
 
 module.exports = app;
