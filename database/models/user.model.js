@@ -10,7 +10,8 @@ module.exports = (sequelize) =>{
         },
         email:{
             allowNull: false,
-            type: DataTypes.STRING(256)
+            type: DataTypes.STRING(256),
+            unique: true
         },
         username:{
             allowNull:false,

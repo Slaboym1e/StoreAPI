@@ -1,9 +1,32 @@
 const sequelize = require("../../database/seq");
 const {models} = require("../../database/seq");
-const { isEmail } = require("../helper");
+const { isEmail, isPassword, generateString } = require("../helper");
 
-const createUser = () => {
-
+const createUser = async (username, email, password) => {
+    if (!!!username || !!! email || !!!password || !isEmail(email) ||  !isPassword(password))
+        return false;
+    if (await models.User.count({where:{ email: email } } ) )
+        return false;
+    const salt = generateString(31);
+    const passHash =  genPasswordHash(password, salt);
+    const t = await sequelize.transaction()
+    try{
+        const User = await models.User.create({
+            email: req.body.email,
+            username: req.body.username,
+            password: passHash,
+            salt: salt
+        }, { transaction: t });
+        await t.commit();
+        if (User !== null) return User;
+        return false;
+    }
+    catch(err){
+        await t.rollback();
+        console.log(err);
+        return false;
+    }
+    
 }
 
 const updateUser = async (userId, username = undefined, email = undefined, avatar = undefined) =>{
@@ -45,4 +68,4 @@ const removeUser = async (userId) =>{
     }
 }
 
-module.exports = {updateUser, removeUser};
+module.exports = {createUser ,updateUser, removeUser};

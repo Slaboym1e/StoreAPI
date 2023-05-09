@@ -60,8 +60,20 @@ const authVerify = async (req, res, next) =>{
 function isEmail(email) {
     var emailFormat = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
     if (email !== '' && email.match(emailFormat)) { return true; }
-    
     return false;
+}
+
+function isPassword(password){
+    let passFormat = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$";
+    return password.match(passFormat);
+}
+
+function genPasswordHash(password, salt){
+    const sha256Hasher = crypto.createHmac("sha256", process.env.SECRET);
+    //const salt = generateString(31);
+    const passhash = sha256Hasher.update(req.body.password);
+    const passsalt = passhash + salt;
+    return sha256Hasher.update(passsalt).digest("hex");
 }
 
 function getIdParam(req) {
@@ -72,4 +84,4 @@ function getIdParam(req) {
 	throw new TypeError(`Invalid ':id' param: "${id}"`);
 }
 
-module.exports = {generateString, jwtCreate, jwtVerify, authVerify, isEmail, getIdParam};
+module.exports = {generateString, jwtCreate, jwtVerify, authVerify, isEmail, getIdParam, isPassword, genPasswordHash};
