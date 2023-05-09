@@ -55,6 +55,24 @@ const updateUser = async (userId, username = undefined, email = undefined, avata
     }
 }
 
+const changePassword = async (userId, password) =>{
+    if(!!!userId || !!!password || !isPassword(password))
+        return false;
+    const salt = generateString(31);
+    const passHash =  genPasswordHash(password, salt);
+    const t = await sequelize.transaction();
+    try{
+        const up = await models.User.update({salt:salt, password: passHash}, {where: {id:userId}}, {transaction:t});
+        await t.commit();
+        if (!up[0])
+            return false;
+        return true;
+    }catch(err){
+        await t.rollback();
+        return false;
+    }
+}
+
 const removeUser = async (userId) =>{
     const t = await sequelize.transaction();
     try{
@@ -68,4 +86,4 @@ const removeUser = async (userId) =>{
     }
 }
 
-module.exports = {createUser ,updateUser, removeUser};
+module.exports = {createUser ,updateUser, removeUser, changePassword};
