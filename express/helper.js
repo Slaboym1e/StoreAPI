@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
 const {models} = require("../database/seq");
 
@@ -64,14 +65,14 @@ function isEmail(email) {
 }
 
 function isPassword(password){
-    let passFormat = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$";
-    return password.match(passFormat);
+    let passFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^\w\s]).{8,}/;
+    if (password.match(passFormat)) return true;
+    return false;
 }
 
 function genPasswordHash(password, salt){
     const sha256Hasher = crypto.createHmac("sha256", process.env.SECRET);
-    //const salt = generateString(31);
-    const passhash = sha256Hasher.update(req.body.password);
+    const passhash = sha256Hasher.update(password);
     const passsalt = passhash + salt;
     return sha256Hasher.update(passsalt).digest("hex");
 }

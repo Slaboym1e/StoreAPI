@@ -1,11 +1,10 @@
-const crypto = require("crypto");
 const express = require('express')
 const app = express.Router()
 const {models} = require("../../database/seq");
 const {isEmail, jwtCreate, jwtVerify, authVerify, getIdParam , genPasswordHash} = require("../helper");
 const sequelize = require("../../database/seq");
 const {createUser, updateUser, removeUser } = require("../controllers/user.controller");
-const {createSession, removeSession, updateSession} = require("../controllers/session.controller");
+const {createSession, removeSession, updateSession ,removeAllSessions} = require("../controllers/session.controller");
 
 
 
@@ -44,7 +43,8 @@ app.post("/signup", async (req, res)=>{
         return res.status(200).json({signup:false, msg:"wrong password"});
     else if(req.body.password.length < 3)
         return res.status(200).json({signup:false, msg:"wrong username"});
-    const User = createUser(req.body.username, req.body.email, req.body.password);
+    const User = await createUser(req.body.username, req.body.email, req.body.password);
+    console.log(User);
     if(!!!User)
         return res.status(200).json({signup: false, code: 2});
     const session = await createSession(User);
@@ -62,6 +62,9 @@ app.post('/refresh', async (req, res)=>{
         return res.status(401).json({response: false, message: "Bad token"});
     if(!!!verifyData.data.payload.refresh || !verifyData.data.payload.refresh)
         return res.status(401).json({response: false, message: "Incorrect token"});
+    console.log(verifyData.data.payload);
+    if (!!!verifyData.data.payload.sessionId ||  !!!verifyData.data.payload.sessionRefresh || !!!verifyData.data.payload.userId)
+        return res.json({response: false, code: 2})
     let session = await models.UserSession.findOne({
         where:{
             id: verifyData.data.payload.sessionId,
@@ -71,25 +74,9 @@ app.post('/refresh', async (req, res)=>{
     });
     if(!!!session)
         return res.status(401).json({response: false, message: "Bad token"});
-    const t = await sequelize.transaction();
-    try{
-        let datetime = new Date().toJSON();
-        const up = await models.UserSession.update({last_refresh: datetime},{
-            where:{
-                id:session.id
-            }
-        }, {transaction:t})
-        await t.commit();
-        const jwt = jwtCreate({userId:session.userId, sessionRefresh: datetime, sessionId: session.id }, '1h');
-        const rt = jwtCreate({sessionId: session.id, sessionRefresh: datetime, userId: session.userId, refresh:true}, '2 days');
-        return res.status(200).json({response:true, session:{jwt:jwt, rt:rt}});
-        
-    }
-    catch(err){
-        await t.rollback();
-        console.log(err);
-        return res.status(401).json({response: false, message: "unexpect"});
-    }
+    const Upd = await updateSession(session.id, session.UserId);
+    if(!Upd) return res.json({response: false, code: 3});
+    return res.json({response: true, session: Upd});
 });
 
 app.post('/logout', authVerify, async (req, res)=>{
@@ -98,6 +85,12 @@ app.post('/logout', authVerify, async (req, res)=>{
     return res.status(200).json({logout:false});
     
 });
+
+app.post('/logoutall', authVerify, async(req, res)=>{
+    if(await removeAllSessions(req.user.id))
+        return res.status(200).json({logout:true});
+    return res.status(200).json({logout:false});
+})
 
 app.get('/:id', authVerify, async (req, res)=>{
     const id = getIdParam(req);

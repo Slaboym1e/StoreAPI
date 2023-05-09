@@ -1,6 +1,6 @@
 const sequelize = require("../../database/seq");
 const {models} = require("../../database/seq");
-const { isEmail, isPassword, generateString } = require("../helper");
+const { isEmail, isPassword, generateString ,genPasswordHash} = require("../helper");
 
 const createUser = async (username, email, password) => {
     if (!!!username || !!! email || !!!password || !isEmail(email) ||  !isPassword(password))
@@ -12,8 +12,8 @@ const createUser = async (username, email, password) => {
     const t = await sequelize.transaction()
     try{
         const User = await models.User.create({
-            email: req.body.email,
-            username: req.body.username,
+            email: email,
+            username: username,
             password: passHash,
             salt: salt
         }, { transaction: t });

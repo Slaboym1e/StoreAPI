@@ -2,6 +2,7 @@ const {models} = require("../../database/seq");
 const sequelize = require("../../database/seq");
 const {jwtCreate} = require("../helper");
 
+//Переработать входные параметры (убрать объект на входе)
 const createSession = async (User) =>{
     const t = await sequelize.transaction();
     try{
@@ -19,17 +20,20 @@ const createSession = async (User) =>{
     }
 }
 
-const updateSession = async (sessionId) => {
+const updateSession = async (sessionId, userId) => {
     const t = await sequelize.transaction();
+    let datetime = new Date().toJSON();
     try{
-        const session = await models.UserSession.update({last_refresh: sequelize.literal('CURRENT_TIMESTAMP')},{
+        const session = await models.UserSession.update({last_refresh: datetime},{
             where:{
                 id:sessionId
             }
         }, {transaction: t});
         await t.commit();
-        console.log(session);
-        return session;
+        if (session[0] !== 1) return false;
+        const jwt = jwtCreate({userId:userId, sessionRefresh: datetime, sessionId: sessionId }, '1h');
+        const rt = jwtCreate({sessionId: sessionId, sessionRefresh: datetime, userId:userId, refresh:true}, '2 days');
+        return {jwt:jwt, rt:rt};
     }
     catch(err){
         await t.rollback();
