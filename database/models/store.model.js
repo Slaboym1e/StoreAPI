@@ -10,7 +10,8 @@ module.exports = (sequelize) =>{
         },
         title:{
             allowNull: false,
-            type: DataTypes.STRING(128)
+            type: DataTypes.STRING(128),
+            unique: true
         },
         description:{
             type: DataTypes.TEXT

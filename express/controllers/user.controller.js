@@ -33,14 +33,14 @@ const updateUser = async (userId, username = undefined, email = undefined, avata
     if(!!!userId){
         return false;
     }
-    let attr;
+    let attr = null;
     if(username !== undefined)
         attr.username = username;
-    else if (!! email !== undefined && isEmail(email))
+    if (email !== undefined && isEmail(email))
         attr.email = email;
-    else if (!! avatar !== undefined)
+    if (avatar !== undefined)
         attr.avatar = avatar;
-    else
+    if (attr === null)
         return false;
     const t = await sequelize.transaction();
     try{
