@@ -86,4 +86,15 @@ const removeUser = async (userId) =>{
     }
 }
 
-module.exports = {createUser ,updateUser, removeUser, changePassword};
+const getUserById = async (userId, confident = false) =>{
+    if (!!!userId)
+        return false;
+    let attrs;
+    confident? attrs = null:  attrs.attributes.exclude = ['password', 'salt'];
+    const user = await models.User.findByPk(id, attrs);
+    if (user !== null)
+        return user;
+    return false;
+}
+
+module.exports = {createUser ,updateUser, removeUser, changePassword, getUserById};

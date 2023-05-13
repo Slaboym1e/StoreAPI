@@ -2,8 +2,7 @@ const express = require('express')
 const app = express.Router()
 const {models} = require("../../database/seq");
 const {isEmail, jwtCreate, jwtVerify, authVerify, getIdParam , genPasswordHash} = require("../helper");
-const sequelize = require("../../database/seq");
-const {createUser, updateUser, removeUser } = require("../controllers/user.controller");
+const {createUser, updateUser, removeUser, getUserById} = require("../controllers/user.controller");
 const {createSession, removeSession, updateSession ,removeAllSessions} = require("../controllers/session.controller");
 
 
@@ -94,7 +93,7 @@ app.post('/logoutall', authVerify, async(req, res)=>{
 
 app.get('/:id', authVerify, async (req, res)=>{
     const id = getIdParam(req);
-	const user = await models.User.findByPk(id, {attributes:{exclude:['password', 'salt']}});
+	const user = await getUserById(id);
 	if (user) res.status(200).json(user);
 	res.status(404).send('404 - Not found');
 })
