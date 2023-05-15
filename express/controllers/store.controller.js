@@ -62,4 +62,30 @@ const removeStore = async (storeId) =>{
     }
 }
 
-module.exports = {createStore, updateStore, removeStore};
+const getStoreById = async (storeId) =>{
+    if (!!!storeId)
+        return false;
+    const Store = await models.Store.findByPk(storeId);
+    if (Store !== null)
+        return Store;
+    return false;
+} 
+
+const getAllStores = async () =>{
+    const Stores = await models.Store.findAll();
+    if (Stores !== null)
+        return Stores;
+    return false;
+}
+
+const getStoresPage = async (offset, limit) =>{
+    if (!!!offset || !!!limit)
+        return false;
+    const Stores = await models.findAll({offset: offset, limit: limit});
+    if (Stores !== null)
+        return Stores;
+    return false;
+}
+
+
+module.exports = {createStore, updateStore, removeStore, getAllStores, getStoreById, getStoresPage};

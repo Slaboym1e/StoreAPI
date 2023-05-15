@@ -91,7 +91,7 @@ const getUserById = async (userId, confident = false) =>{
         return false;
     let attrs;
     confident? attrs = null:  attrs.attributes.exclude = ['password', 'salt'];
-    const user = await models.User.findByPk(id, attrs);
+    const user = await models.User.findByPk(userId, attrs);
     if (user !== null)
         return user;
     return false;
