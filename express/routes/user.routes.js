@@ -94,7 +94,7 @@ app.post('/logoutall', authVerify, async(req, res)=>{
 app.get('/:id', authVerify, async (req, res)=>{
     const id = getIdParam(req);
 	const user = await getUserById(id);
-	if (user) res.status(200).json(user);
+	if (user) return res.status(200).json(user);
 	res.status(404).send('404 - Not found');
 })
 
