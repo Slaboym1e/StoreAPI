@@ -20,8 +20,6 @@ const sequelize = new Sequelize(
 
 const modelDefs = [
     require("./models/user.model"),
-    require("./models/store.model"),
-    require("./models/place.store.model"),
     require("./models/sessions.user.model")
 
 ];
