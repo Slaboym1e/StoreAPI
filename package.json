@@ -24,6 +24,7 @@
     "helmet": "^6.1.5",
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.2.3",
-    "sequelize": "^6.31.0"
+    "sequelize": "^6.31.0",
+    "sqlite3": "^5.1.6"
   }
 }

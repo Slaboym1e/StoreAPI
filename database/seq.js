@@ -1,5 +1,5 @@
-const {Sequelize} = require("sequelize");
-const {extraSetup} = require("./extras");
+const { Sequelize } = require("sequelize");
+const { extraSetup } = require("./extras");
 
 const sequelize = new Sequelize(
     process.env.DATABASE,
@@ -22,10 +22,16 @@ const modelDefs = [
     require("./models/user.model"),
     require("./models/sessions.user.model")
 
+const modelDefs = [
+  require("./models/user.model"),
+  require("./models/sessions.user.model"),
+  require("./models/role.model"),
+  require("./models/rights.model"),
+  require("./models/rolerights.model"),
 ];
 
-for( const modelDef of modelDefs) {
-    modelDef(sequelize);
+for (const modelDef of modelDefs) {
+  modelDef(sequelize);
 }
 
 extraSetup(sequelize);

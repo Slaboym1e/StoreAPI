@@ -1,3 +1,5 @@
 /node_modules
 .env
 tests/test.js
+*.sqlite
+.DS_Store

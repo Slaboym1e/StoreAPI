@@ -12,6 +12,10 @@ module.exports = (sequelize) =>{
             allowNull:false,
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
+        },
+        agent:{
+            type: DataTypes.TEXT,
+            allowNull: false
         }
     })
 }
