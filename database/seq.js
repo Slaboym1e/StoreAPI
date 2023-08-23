@@ -19,15 +19,12 @@ const sequelize = new Sequelize(
 )
 
 const modelDefs = [
-    require("./models/user.model"),
-    require("./models/sessions.user.model")
-
-const modelDefs = [
   require("./models/user.model"),
   require("./models/sessions.user.model"),
   require("./models/role.model"),
   require("./models/rights.model"),
   require("./models/rolerights.model"),
+  require("./models/userroles.model")
 ];
 
 for (const modelDef of modelDefs) {

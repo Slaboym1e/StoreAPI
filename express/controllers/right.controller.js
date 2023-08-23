@@ -40,7 +40,7 @@ const removeRights = async (rightId) => {
   if (!!!rightId) return false;
   const t = await sequelize.transaction();
   try {
-    await models.Role.destroy(
+    await models.Rights.destroy(
       {
         where: { id: roleId },
       },
@@ -55,4 +55,12 @@ const removeRights = async (rightId) => {
   }
 };
 
-module.exports = { createRight, editRight };
+const getRightByName = async (rightName) =>{
+  if (!!!rightName) return false;
+  const right = await models.Rights.findOne({where:{name:rightName}});
+  if (right != null)
+    return right;
+  return null; 
+}
+
+module.exports = { createRight, editRight, getRightByName };

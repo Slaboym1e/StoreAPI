@@ -21,6 +21,7 @@ const createAdmin = async () => {
   if (!(await emptyDB())) return false;
   const role = await createRole("Admin");
   const right = await createRight("all");
+  const base_right = await createRight("main_view");
   const RoleRightRel = await createRoleRightRelation(role.id, right.id);
   const user = await createUser("admin", "admin@ts.test", "4976215lC.");
   const userRoleRel = await createUserRoleRel(user.id, role.id);
