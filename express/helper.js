@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
 const { models } = require("../database/seq");
+const {Op} = require("sequelize");
 
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -113,9 +114,9 @@ const rightsControl = async (userID, action) => {
   }
   console.log(roleArr);
   const rights = await models.RoleRight.findAll({
-    include: [models.Rights],
+    include: [{model:models.Rights, where:{ action: {[Op.in]:["all", action]}}}],
     attributes: ["RightId"],
-    where: { RoleId: roleArr },
+    where: { RoleId: roleArr},
   });
   for (const def of rights) {
     if (def.Right.action == "all" || def.Right.action == action) return true;

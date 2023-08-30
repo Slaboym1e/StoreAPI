@@ -54,4 +54,22 @@ const removeRole = async (roleId) => {
   }
 };
 
-module.exports = { createRole, editRole, removeRole };
+const getRoleById = async (roleId) => {
+  if (!!!roleId) return false;
+  const role = await models.Role.findByPk(roleId);
+  if (role !== null)
+    return role;
+  return false;
+}
+
+const getRoles = async (offset, limit) => {
+  let queryParams = {};
+  if (!!offset && Number.isInteger(offset))
+    queryParams.offset = Number(offset);
+  if (!!limit && Number.isInteger(limit))
+    queryParams.limit = Number(limit);
+  return await models.Role.findAll(queryParams);
+}
+
+
+module.exports = { createRole, editRole, removeRole, getRoleById, getRoles };

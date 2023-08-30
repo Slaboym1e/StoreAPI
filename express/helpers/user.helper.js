@@ -6,6 +6,7 @@ const {
 } = require("../controllers/rolerights.controller");
 const { createUserRoleRel } = require("../controllers/userroles.controller");
 const { models } = require("../../database/seq");
+const superUserConf = require("../configs/core/superuser.config");
 
 const emptyDB = async () => {
   if (
@@ -17,15 +18,18 @@ const emptyDB = async () => {
   return false;
 };
 
-const createAdmin = async () => {
-  if (!(await emptyDB())) return false;
-  const role = await createRole("Admin");
-  const right = await createRight("all");
-  const base_right = await createRight("main_view");
-  const RoleRightRel = await createRoleRightRelation(role.id, right.id);
-  const user = await createUser("admin", "admin@ts.test", "4976215lC.");
-  const userRoleRel = await createUserRoleRel(user.id, role.id);
-  return true;
+const createCoreRights = async () => {
+  const base_rights = require("../configs/core/rights.config");
+  for (const br of base_rights) {
+    await createRight(br);
+  }
+}
+
+const createAdmin = async (superRightId, superRoleId) => {
+  const RoleRightRel = await createRoleRightRelation(superRoleId, superRightId);
+  const user = await createUser(superUserConf.username, superUserConf.email, superUserConf.password);
+  const userRoleRel = await createUserRoleRel(user.id, superRoleId);
+  return user;
 };
 
-module.exports = { createAdmin };
+module.exports = { createAdmin, emptyDB, createCoreRights };
