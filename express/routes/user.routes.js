@@ -21,6 +21,8 @@ const {
   updateSession,
   removeAllSessions,
 } = require("../controllers/session.controller");
+const { getRolesByUser } = require("../controllers/role.controller");
+const { getRightsByRoles } = require("../controllers/right.controller");
 
 //сделать отдельную ошибку под заблокированного пользователя
 app.post("/signin", async (req, res) => {
@@ -134,26 +136,77 @@ app.get("/u-:id", authVerify, async (req, res) => {
   return res.status(404).send("404 - Not found");
 });
 
+app.get("/u-:id/roles", authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "userroles_view")) &&
+      id !== req.user.UserId
+    )
+      return res.sendStatus(403).json({ msg: "permission denied" });
+    return res.json(await getRolesByUser(id));
+  } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+  }
+});
+
+app.get("/u-:id/rights", authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "userrights_view")) &&
+      req.user.UserId !== id
+    )
+      return res.sendStatus(403).json({ msg: "permission denied" });
+    const userRoles = await getRolesByUser(id);
+    if (userRoles === null)
+      return res.status(404).json({ msg: "UserRoles not found" });
+    let rolesArr = [];
+    for (const def of userRoles) {
+      rolesArr.push(def.RoleId);
+    }
+    return res.json(await getRightsByRoles(rolesArr));
+  } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
 app.put("/u-:id", authVerify, async (req, res) => {
-  const data = req.body;
-  if (!!!req.body.userId || req.user.UserId !== req.body.userId)
-    return res.status(400).json({ update: false, code: 1 });
-  if (await updateUser(data.userId, data.username, data.email, data.avatar))
-    return res.status(200).json({ update: true });
-  return res.json({ update: false, code: 2 });
+  try {
+    const id = getIdParam(req);
+    const data = req.body;
+    if (
+      !(await rightsControl(req.user.UserId, "users_edit")) &&
+      req.user.UserId !== id
+    )
+      return res.status(403).json({ msg: "permission denied" });
+    return res.json({
+      update: await updateUser(id, data.username, data.email, data.avatar),
+    });
+  } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
 });
 
 app.delete("/u-:id", authVerify, async (req, res) => {
-  const id = getIdParam(req);
-  if (id !== req.user.UserId)
-    return res.status(400).json({ remove: false, code: 1 });
-  if (await removeUser(id)) return res.json({ remove: true });
-  return res.json({ remove: false, code: 2 });
-});
-
-app.get("/help", authVerify, async (req, res) => {
-  const rights = await rightsControl(req.user.UserId, "edit_users");
-  return res.json(rights);
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "users_remove")) &&
+      req.user.UserId !== id
+    )
+      return res.status(403).json({ msg: "permission denied" });
+    return res.json({ remove: await removeUser(id) });
+  } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
 });
 
 module.exports = app;

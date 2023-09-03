@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
 const { models } = require("../database/seq");
 const {Op} = require("sequelize");
+const { getRightsByRoles } = require("./controllers/right.controller");
 
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -108,18 +109,28 @@ const rightsControl = async (userID, action) => {
     where: { UserId: userID },
   });
   if (roles === null) return false;
+  //
+  let inArr = []
+  if(Array.isArray(action)){
+    inArr = action;
+    inArr.push("all");
+  }else{
+    inArr = ["all", action];
+  }
+  //
   let roleArr = [];
   for (const def of roles) {
     roleArr.push(def.RoleId);
   }
   console.log(roleArr);
-  const rights = await models.RoleRight.findAll({
-    include: [{model:models.Rights, where:{ action: {[Op.in]:["all", action]}}}],
-    attributes: ["RightId"],
-    where: { RoleId: roleArr},
-  });
+  const rights = await getRightsByRoles(roleArr);
+  // const rights = await models.RoleRight.findAll({
+  //   include: [{model:models.Rights, where:{ action: {[Op.in]: inArr}}}],
+  //   attributes: ["RightId"],
+  //   where: { RoleId: roleArr},
+  // });
   for (const def of rights) {
-    if (def.Right.action == "all" || def.Right.action == action) return true;
+    if (def.action == "all" || def.action == action) return true;
   }
   return false;
 };

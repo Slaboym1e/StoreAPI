@@ -71,5 +71,13 @@ const getRoles = async (offset, limit) => {
   return await models.Role.findAll(queryParams);
 }
 
-
-module.exports = { createRole, editRole, removeRole, getRoleById, getRoles };
+const getRolesByUser = async (userId) =>{
+  if (!!!userId) return null;
+  const roles = await models.UserRoles.findAll({
+    where: { UserId: userId },
+  });
+  if(roles !== null)
+    return roles;
+  return null; 
+}
+module.exports = { createRole, editRole, removeRole, getRoleById, getRoles, getRolesByUser };

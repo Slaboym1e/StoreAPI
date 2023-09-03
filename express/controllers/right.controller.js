@@ -36,7 +36,7 @@ const editRight = async (actionId, action) => {
   }
 };
 
-const removeRights = async (rightId) => {
+const removeRight = async (rightId) => {
   if (!!!rightId) return false;
   const t = await sequelize.transaction();
   try {
@@ -63,4 +63,29 @@ const getRightByName = async (rightName) =>{
   return null; 
 }
 
-module.exports = { createRight, editRight, getRightByName };
+const getRights = async (offset, limit) =>{
+  let queryParams = {};
+  if (!!offset && Number.isInteger(offset))
+    queryParams.offset = Number(offset);
+  if (!!limit && Number.isInteger(limit))
+    queryParams.limit = Number(limit);
+  return await models.Rights.findAll(queryParams);
+}
+
+const getRightsByRoles = async (roleIds) =>{
+  if(!!!roleIds) return null;
+  if(!Array.isArray(roleIds))
+    roleIds = [roleIds];
+    const rights = await models.RoleRight.findAll({
+      include: [{model:models.Rights, where:{ action: {[Op.in]: inArr}}}],
+      attributes: ["id","RightId"],
+      where: { RoleId: roleArr},
+    });
+    let resultArr = [];
+    for(const def of rights){
+      resultArr.push(def.Rights);
+    }
+    return resultArr; 
+}
+
+module.exports = { createRight, editRight, getRightByName, getRights, getRightsByRoles };

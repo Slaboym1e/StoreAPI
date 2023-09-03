@@ -2,7 +2,6 @@ module.exports = [
     "main_view",
     "dashboard_view",
     "rights_view",
-    "rights_edit",
     "roles_view",
     "roles_edit",
     "roles_remove",
@@ -11,5 +10,9 @@ module.exports = [
     "rolerights_remove",
     "users_view",
     "users_edit",
-    "users_remove"
+    "users_remove",
+    "userroles_view",
+    "userroles_edit",
+    "userroles_remove",
+    "userrights_view"
 ]
