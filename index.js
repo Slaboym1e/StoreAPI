@@ -29,6 +29,7 @@ const init = async () => {
         const superUser = await createAdmin(superRight.id, superRole.id);
         console.log("SuperUser succesfully create");
         await createCoreRights();
+        await createRole("User");
     }
     console.log('StoreAPI starting...');
     app.listen(PORT, () => {

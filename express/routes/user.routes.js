@@ -21,8 +21,9 @@ const {
   updateSession,
   removeAllSessions,
 } = require("../controllers/session.controller");
-const { getRolesByUser } = require("../controllers/role.controller");
+const { getRolesByUser, getRoleByName } = require("../controllers/role.controller");
 const { getRightsByRoles } = require("../controllers/right.controller");
+const { createUserRoleRel } = require("../controllers/userroles.controller");
 
 //сделать отдельную ошибку под заблокированного пользователя
 app.post("/signin", async (req, res) => {
@@ -77,6 +78,12 @@ app.post("/signup", async (req, res) => {
   console.log(User);
   if (!!!User) return res.status(200).json({ signup: false, code: 2 });
   console.log(req);
+  //
+  const role = getRoleByName("User");
+  if(role !== null){
+    const rolRel = createUserRoleRel(User.id, role.id);
+  }
+  //
   const session = await createSession(User, "Agent");
   console.log(session);
   return res.status(201).json({ signup: true, session: session });
@@ -118,15 +125,11 @@ app.post("/refresh", async (req, res) => {
 });
 
 app.post("/logout", authVerify, async (req, res) => {
-  if (await removeSession(req.user.id))
-    return res.status(200).json({ logout: true });
-  return res.status(200).json({ logout: false });
+  return res.json({logout: await removeSession(req.user.id)});
 });
 
 app.post("/logoutall", authVerify, async (req, res) => {
-  if (await removeAllSessions(req.user.id))
-    return res.status(200).json({ logout: true });
-  return res.status(200).json({ logout: false });
+  return res.json({logout: await removeAllSessions(req.user.id)});
 });
 
 app.get("/u-:id", authVerify, async (req, res) => {

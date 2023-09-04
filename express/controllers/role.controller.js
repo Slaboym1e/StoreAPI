@@ -62,6 +62,11 @@ const getRoleById = async (roleId) => {
   return false;
 }
 
+const getRoleByName = async (name) =>{
+  if(!!!name) return null;
+  return await models.Role.findOne({where:{name:name}}); 
+}
+
 const getRoles = async (offset, limit) => {
   let queryParams = {};
   if (!!offset && Number.isInteger(offset))
@@ -80,4 +85,4 @@ const getRolesByUser = async (userId) =>{
     return roles;
   return null; 
 }
-module.exports = { createRole, editRole, removeRole, getRoleById, getRoles, getRolesByUser };
+module.exports = { createRole, editRole, removeRole, getRoleById, getRoles, getRolesByUser, getRoleByName };
