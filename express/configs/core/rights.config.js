@@ -7,12 +7,10 @@ module.exports = [
     "roles_remove",
     "rolerights_view",
     "rolerights_edit",
-    "rolerights_remove",
     "users_view",
     "users_edit",
     "users_remove",
     "userroles_view",
     "userroles_edit",
-    "userroles_remove",
     "userrights_view"
 ]

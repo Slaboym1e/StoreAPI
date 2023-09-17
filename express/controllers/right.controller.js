@@ -1,5 +1,6 @@
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
+const {Op} = require("sequelize");
 
 const createRight = async (action) => {
   if (!!!action) return false;
@@ -56,34 +57,31 @@ const removeRight = async (rightId) => {
 };
 
 const getRightByName = async (rightName) =>{
-  if (!!!rightName) return false;
-  const right = await models.Rights.findOne({where:{name:rightName}});
-  if (right != null)
-    return right;
-  return null; 
+  if (!!!rightName) return null;
+  return await models.Rights.findOne({where:{name:rightName}});
 }
 
 const getRights = async (offset, limit) =>{
   let queryParams = {};
-  if (!!offset && Number.isInteger(offset))
+  if (!!offset && Number.isInteger(Number(offset)))
     queryParams.offset = Number(offset);
-  if (!!limit && Number.isInteger(limit))
+  if (!!limit && Number.isInteger(Number(limit)))
     queryParams.limit = Number(limit);
   return await models.Rights.findAll(queryParams);
 }
 
-const getRightsByRoles = async (roleIds) =>{
+const getRightsByRoles = async (roleIds, actions) =>{
   if(!!!roleIds) return null;
   if(!Array.isArray(roleIds))
     roleIds = [roleIds];
     const rights = await models.RoleRight.findAll({
-      include: [{model:models.Rights, where:{ action: {[Op.in]: inArr}}}],
-      attributes: ["id","RightId"],
-      where: { RoleId: roleArr},
+      include: [{model:models.Rights,  where:{ action: {[Op.in]: actions}}}],
+      attributes: ["RightId"],
+      where: { RoleId: roleIds},
     });
     let resultArr = [];
     for(const def of rights){
-      resultArr.push(def.Rights);
+      resultArr.push(def.Right);
     }
     return resultArr; 
 }

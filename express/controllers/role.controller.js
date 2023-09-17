@@ -27,8 +27,7 @@ const editRole = async (id, name) => {
       { transaction: t }
     );
     await t.commit();
-    if (role[0] !== 1) return false;
-    return true;
+    return role[0];
   } catch (err) {
     await t.rollback();
     return false;
@@ -55,34 +54,34 @@ const removeRole = async (roleId) => {
 };
 
 const getRoleById = async (roleId) => {
-  if (!!!roleId) return false;
-  const role = await models.Role.findByPk(roleId);
-  if (role !== null)
-    return role;
-  return false;
-}
+  if (!!!roleId) return null;
+  return await models.Role.findByPk(roleId);
+};
 
-const getRoleByName = async (name) =>{
-  if(!!!name) return null;
-  return await models.Role.findOne({where:{name:name}}); 
-}
+const getRoleByName = async (name) => {
+  if (!!!name) return null;
+  return await models.Role.findOne({ where: { name: name } });
+};
 
 const getRoles = async (offset, limit) => {
   let queryParams = {};
-  if (!!offset && Number.isInteger(offset))
-    queryParams.offset = Number(offset);
-  if (!!limit && Number.isInteger(limit))
-    queryParams.limit = Number(limit);
+  if (!!offset && Number.isInteger(Number(offset))) queryParams.offset = Number(offset);
+  if (!!limit && Number.isInteger(Number(limit))) queryParams.limit = Number(limit);
   return await models.Role.findAll(queryParams);
-}
+};
 
-const getRolesByUser = async (userId) =>{
+const getRolesByUser = async (userId) => {
   if (!!!userId) return null;
-  const roles = await models.UserRoles.findAll({
+  return await models.UserRoles.findAll({
     where: { UserId: userId },
   });
-  if(roles !== null)
-    return roles;
-  return null; 
-}
-module.exports = { createRole, editRole, removeRole, getRoleById, getRoles, getRolesByUser, getRoleByName };
+};
+module.exports = {
+  createRole,
+  editRole,
+  removeRole,
+  getRoleById,
+  getRoles,
+  getRolesByUser,
+  getRoleByName,
+};

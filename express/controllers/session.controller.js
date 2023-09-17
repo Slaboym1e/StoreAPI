@@ -114,9 +114,17 @@ const removeAllSessions = async (userId) => {
   }
 };
 
+const getSessionByUserIdAndRefresh = async (userId, lastRefresh) => {
+  if (!!!userId || !!!lastRefresh) return null;
+  return await models.UserSession.findOne({
+    where: { last_refresh: lastRefresh, userId: userId },
+  });
+};
+
 module.exports = {
   createSession,
   updateSession,
   removeSession,
   removeAllSessions,
+  getSessionByUserIdAndRefresh
 };

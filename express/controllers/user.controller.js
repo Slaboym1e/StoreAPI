@@ -116,15 +116,18 @@ const removeUser = async (userId) => {
 };
 
 const getUserById = async (userId, confident = false) => {
-  if (!!!userId) return false;
+  if (!!!userId) return null;
   let attrs;
   confident
     ? (attrs = null)
     : (attrs.attributes.exclude = ["password", "salt"]);
-  const user = await models.User.findByPk(userId, attrs);
-  if (user !== null) return user;
-  return false;
+  return await models.User.findByPk(userId, attrs);
 };
+
+const getUserByEmail = async (email) =>{
+  if(!!!email) return null;
+  return await models.User.findOne({where:{email:email}});
+}
 
 module.exports = {
   createUser,
@@ -132,4 +135,5 @@ module.exports = {
   removeUser,
   changePassword,
   getUserById,
+  getUserByEmail
 };
