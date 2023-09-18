@@ -2,6 +2,7 @@ const express = require("express");
 const app = express.Router();
 const {authVerify} = require("../helpers/auth.helper");
 const { rightsControl, getIdParam } = require("../helper");
+const {baseLimits} = require("../helpers/limits.helper");
 const {
   createRole,
   getRoleById,
@@ -22,12 +23,13 @@ const {
   deleteUserRolRel,
 } = require("../controllers/userroles.controller");
 
+app.use(baseLimits);
 app.use(authVerify);
 
 app.get("/", async (req, res) => {
   if (!(await rightsControl(req.user.UserId, "role_view")))
     return res
-      .statusCode(403)
+      .status(403)
       .json({ create: false, msg: "permission denied" });
   const params = req.query;
   return res.json(await getRoles(params.offset, params.limit));

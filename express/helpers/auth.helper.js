@@ -30,7 +30,8 @@ const jwtVerify = (token) => {
 
 const authVerify = async (req, res, next) => {
   if (config.debug && config.disableAuthVerify) {
-    req.user = await getUserById(1);
+    
+    req.user = {UserId:1, User: await getUserById(1)};
     return next();
   }
   const authHeader = getAuthHeader(req);

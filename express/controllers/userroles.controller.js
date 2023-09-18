@@ -29,7 +29,7 @@ const deleteUserRolRel = async(userId, roleId)=>{
 
 const getUsersByRoles = async (roleId) =>{
   if(!!!roleId) return null;
-  return await await models.UserRoles.findAll({
+  return await models.UserRoles.findAll({
        include: [{model:models.User, attributes:{exclude:["password", "salt"]}}],
        attributes: ["RightId"],
        where: { RoleId: roleId}

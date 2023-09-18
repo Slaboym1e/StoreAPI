@@ -48,6 +48,8 @@ function getIdParam(req) {
 
 const rightsControl = async (userID, action) => {
   if (!!!userID || !!!action) return false;
+  console.log(config.debug);
+  console.log(config.disableRightsControl);
   if(config.debug && config.disableRightsControl)
     return true;
   const roles = await models.UserRoles.findAll({

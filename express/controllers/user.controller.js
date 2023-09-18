@@ -117,10 +117,10 @@ const removeUser = async (userId) => {
 
 const getUserById = async (userId, confident = false) => {
   if (!!!userId) return null;
-  let attrs;
+  let attrs = {};
   confident
     ? (attrs = null)
-    : (attrs.attributes.exclude = ["password", "salt"]);
+    : (attrs = {attributes:{exclude: ["password", "salt"]}});
   return await models.User.findByPk(userId, attrs);
 };
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express.Router();
+const {baseLimits, authLimits} = require("../helpers/limits.helper");
 const {
   jwtVerify,
   getAuthHeader,
@@ -32,7 +33,7 @@ const {
 const { getRightsByRoles } = require("../controllers/right.controller");
 const { createUserRoleRel } = require("../controllers/userroles.controller");
 
-app.post("/signin", async (req, res) => {
+app.post("/signin", authLimits, async (req, res) => {
   if (!!!req.body.email || !!!req.body.password)
     return res.status(400).json({ signin: false, message: "empty request" });
   if (!isEmail(req.body.email))
@@ -66,7 +67,7 @@ app.post("/signin", async (req, res) => {
   }
 });
 
-app.post("/signup", async (req, res) => {
+app.post("/signup",authLimits, async (req, res) => {
   if (
     !!!req.body.username ||
     !!!req.body.email ||
@@ -108,7 +109,7 @@ app.post("/signup", async (req, res) => {
     });
 });
 
-app.post("/refresh", async (req, res) => {
+app.post("/refresh",authLimits, async (req, res) => {
   const authHeader = getAuthHeader(req);
   if (authHeader === null)
     return res
@@ -138,15 +139,15 @@ app.post("/refresh", async (req, res) => {
   return res.json({ response: true, access_token: Upd.jwt, type: "Bearer", expires_in: 3600, refresh_token: Upd.rt});
 });
 
-app.post("/logout", authVerify, async (req, res) => {
+app.post("/logout", authLimits, authVerify, async (req, res) => {
   return res.json({ logout: await removeSession(req.user.id) });
 });
 
-app.post("/logoutall", authVerify, async (req, res) => {
+app.post("/logoutall",authLimits, authVerify, async (req, res) => {
   return res.json({ logout: await removeAllSessions(req.user.id) });
 });
 
-app.get("/u-:id", authVerify, async (req, res) => {
+app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
@@ -164,7 +165,7 @@ app.get("/u-:id", authVerify, async (req, res) => {
   }
 });
 
-app.get("/u-:id/roles", authVerify, async (req, res) => {
+app.get("/u-:id/roles",baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
@@ -180,7 +181,7 @@ app.get("/u-:id/roles", authVerify, async (req, res) => {
   }
 });
 
-app.get("/u-:id/rights", authVerify, async (req, res) => {
+app.get("/u-:id/rights",baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
@@ -203,7 +204,7 @@ app.get("/u-:id/rights", authVerify, async (req, res) => {
   }
 });
 
-app.put("/u-:id", authVerify, async (req, res) => {
+app.put("/u-:id",baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     const data = req.body;
@@ -222,7 +223,7 @@ app.put("/u-:id", authVerify, async (req, res) => {
   }
 });
 
-app.delete("/u-:id", authVerify, async (req, res) => {
+app.delete("/u-:id",baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
