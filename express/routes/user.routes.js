@@ -1,10 +1,11 @@
 const express = require("express");
 const app = express.Router();
-const {baseLimits, authLimits} = require("../helpers/limits.helper");
+const { baseLimits, authLimits } = require("../helpers/limits.helper");
+const config = require("../configs/core/app.config");
 const {
   jwtVerify,
   getAuthHeader,
-  authVerify
+  authVerify,
 } = require("../helpers/auth.helper");
 const {
   isEmail,
@@ -34,6 +35,7 @@ const { getRightsByRoles } = require("../controllers/right.controller");
 const { createUserRoleRel } = require("../controllers/userroles.controller");
 
 app.post("/signin", authLimits, async (req, res) => {
+  console.log(req.body);
   if (!!!req.body.email || !!!req.body.password)
     return res.status(400).json({ signin: false, message: "empty request" });
   if (!isEmail(req.body.email))
@@ -52,64 +54,72 @@ app.post("/signin", authLimits, async (req, res) => {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
     const session = await createSession(user, "Agent");
-    return res
-      .status(200)
-      .json({
-        signup: true,
-        access_token: session.jwt,
-        expires_in: 3600,
-        type: "Bearer",
-        refresh_token: session.rt,
-      });
-  } catch (err) {
-    console.log(`SIGNIN ERROR: ${err}`);
-    return res.status(401).json({ signin: false, message: "unexpected" });
-  }
-});
-
-app.post("/signup",authLimits, async (req, res) => {
-  if (
-    !!!req.body.username ||
-    !!!req.body.email ||
-    !!!req.body.password ||
-    !!!req.body.repassword
-  )
-    return res.status(400).json({ signup: false, message: "empty request" });
-  if (!isEmail(req.body.email))
-    return res
-      .status(401)
-      .json({ signup: false, msg: "incorrect email address" });
-  if (req.body.password.length < 8 || req.body.password !== req.body.repassword)
-    return res.status(401).json({ signup: false, msg: "wrong password" });
-  else if (req.body.password.length < 3)
-    return res.status(401).json({ signup: false, msg: "wrong username" });
-  const User = await createUser(
-    req.body.username,
-    req.body.email,
-    req.body.password
-  );
-  console.log(User);
-  if (!!!User) return res.status(401).json({ signup: false, code: 2 });
-  console.log(req);
-  //
-  const role = getRoleByName("User");
-  if (role !== null) {
-    createUserRoleRel(User.id, role.id);
-  }
-  //
-  const session = await createSession(User, "Agent");
-  return res
-    .status(201)
-    .json({
+    return res.status(200).json({
       signup: true,
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
       refresh_token: session.rt,
     });
+  } catch (err) {
+    console.log(`SIGNIN ERROR: ${err}`);
+    return res.status(401).json({ signin: false, message: "unexpected" });
+  }
 });
 
-app.post("/refresh",authLimits, async (req, res) => {
+if (!config.disableSignUp)
+  app.post("/signup", authLimits, async (req, res) => {
+    if (
+      !!!req.body.username ||
+      !!!req.body.email ||
+      !!!req.body.password ||
+      !!!req.body.repassword
+    )
+      return res.status(400).json({ signup: false, message: "empty request" });
+    if (!isEmail(req.body.email))
+      return res
+        .status(401)
+        .json({ signup: false, msg: "incorrect email address" });
+    if (
+      req.body.password.length < 8 ||
+      req.body.password !== req.body.repassword
+    )
+      return res.status(401).json({ signup: false, msg: "wrong password" });
+    else if (req.body.password.length < 3)
+      return res.status(401).json({ signup: false, msg: "wrong username" });
+    const User = await createUser(
+      req.body.username,
+      req.body.email,
+      req.body.password
+    );
+    console.log(User);
+    if (!!!User) return res.status(401).json({ signup: false, code: 2 });
+    console.log(req);
+    //
+    const role = getRoleByName("User");
+    if (role !== null) {
+      createUserRoleRel(User.id, role.id);
+    }
+    //
+    const session = await createSession(User, "Agent");
+    return res.status(201).json({
+      signup: true,
+      access_token: session.jwt,
+      expires_in: 3600,
+      type: "Bearer",
+      refresh_token: session.rt,
+    });
+  });
+
+app.post("/create", baseLimits, authVerify, async (req, res) => {
+  if (!(await rightsControl(req.user.UserId, "users_create")))
+    return res.status(403).json({ msg: "Permission denied" });
+  const data = req.body;
+  if (!!!data.username || !!!data.password)
+    return res.status(400).json({ msg: "Bad request" });
+});
+
+app.post("/refresh", authLimits, async (req, res) => {
   const authHeader = getAuthHeader(req);
   if (authHeader === null)
     return res
@@ -136,14 +146,20 @@ app.post("/refresh",authLimits, async (req, res) => {
     return res.status(401).json({ response: false, message: "Bad token" });
   const Upd = await updateSession(session.id, session.UserId);
   if (!Upd) return res.json({ response: false, code: 3 });
-  return res.json({ response: true, access_token: Upd.jwt, type: "Bearer", expires_in: 3600, refresh_token: Upd.rt});
+  return res.json({
+    response: true,
+    access_token: Upd.jwt,
+    type: "Bearer",
+    expires_in: 3600,
+    refresh_token: Upd.rt,
+  });
 });
 
 app.post("/logout", authLimits, authVerify, async (req, res) => {
   return res.json({ logout: await removeSession(req.user.id) });
 });
 
-app.post("/logoutall",authLimits, authVerify, async (req, res) => {
+app.post("/logoutall", authLimits, authVerify, async (req, res) => {
   return res.json({ logout: await removeAllSessions(req.user.id) });
 });
 
@@ -165,7 +181,7 @@ app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
   }
 });
 
-app.get("/u-:id/roles",baseLimits, authVerify, async (req, res) => {
+app.get("/u-:id/roles", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
@@ -181,7 +197,7 @@ app.get("/u-:id/roles",baseLimits, authVerify, async (req, res) => {
   }
 });
 
-app.get("/u-:id/rights",baseLimits, authVerify, async (req, res) => {
+app.get("/u-:id/rights", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (
@@ -204,7 +220,7 @@ app.get("/u-:id/rights",baseLimits, authVerify, async (req, res) => {
   }
 });
 
-app.put("/u-:id",baseLimits, authVerify, async (req, res) => {
+app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     const data = req.body;
@@ -223,7 +239,7 @@ app.put("/u-:id",baseLimits, authVerify, async (req, res) => {
   }
 });
 
-app.delete("/u-:id",baseLimits, authVerify, async (req, res) => {
+app.delete("/u-:id", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
     if (

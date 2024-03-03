@@ -27,7 +27,7 @@ app.use(baseLimits);
 app.use(authVerify);
 
 app.get("/", async (req, res) => {
-  if (!(await rightsControl(req.user.UserId, "role_view")))
+  if (!(await rightsControl(req.user.UserId, "roles_view")))
     return res
       .status(403)
       .json({ create: false, msg: "permission denied" });
@@ -36,7 +36,7 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/", async (req, res) => {
-  if (!(await rightsControl(req.user.UserId, "role_create")))
+  if (!(await rightsControl(req.user.UserId, "roles_create")))
     return res.status(403).json({ create: false, msg: "permission denied" });
   if (!!!req.body.name)
     return res.status(400).json({ create: false, msg: "bad request" });
@@ -50,7 +50,7 @@ app.post("/", async (req, res) => {
 });
 
 app.get("/r-:id", async (req, res) => {
-  if (!(await rightsControl(req.user.UserId, "role_view")))
+  if (!(await rightsControl(req.user.UserId, "roles_view")))
     return res.status(403).json({ create: false, msg: "permission denied" });
   try {
     const id = getIdParam(req);

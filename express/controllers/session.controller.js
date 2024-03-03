@@ -1,6 +1,6 @@
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
-const { jwtCreate } = require("../helper");
+const { jwtCreate } = require("../helpers/auth.helper");
 
 //Переработать входные параметры (убрать объект на входе)
 const createSession = async (User, userAgent) => {
@@ -33,6 +33,7 @@ const createSession = async (User, userAgent) => {
     );
     return { jwt: jwt, rt: rt };
   } catch (err) {
+    console.log(err);
     t.rollback();
     return undefined;
   }
@@ -126,5 +127,5 @@ module.exports = {
   updateSession,
   removeSession,
   removeAllSessions,
-  getSessionByUserIdAndRefresh
+  getSessionByUserIdAndRefresh,
 };
