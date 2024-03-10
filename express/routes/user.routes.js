@@ -19,6 +19,7 @@ const {
   removeUser,
   getUserById,
   getUserByEmail,
+  getUsers,
 } = require("../controllers/user.controller");
 const {
   createSession,
