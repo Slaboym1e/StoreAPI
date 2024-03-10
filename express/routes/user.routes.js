@@ -55,7 +55,7 @@ app.post("/signin", authLimits, async (req, res) => {
     }
     const session = await createSession(user, "Agent");
     return res.status(200).json({
-      signup: true,
+      signin: true,
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
@@ -110,14 +110,6 @@ if (!config.disableSignUp)
       refresh_token: session.rt,
     });
   });
-
-app.post("/create", baseLimits, authVerify, async (req, res) => {
-  if (!(await rightsControl(req.user.UserId, "users_create")))
-    return res.status(403).json({ msg: "Permission denied" });
-  const data = req.body;
-  if (!!!data.username || !!!data.password)
-    return res.status(400).json({ msg: "Bad request" });
-});
 
 app.post("/refresh", authLimits, async (req, res) => {
   const authHeader = getAuthHeader(req);
@@ -253,6 +245,47 @@ app.delete("/u-:id", baseLimits, authVerify, async (req, res) => {
       return res.status(400).json({ msg: "uncorrect id" });
     return res.status(400).json({ msg: "unexpect error" });
   }
+});
+
+app.post("/add", baseLimits, authVerify, async (req, res) => {
+  if (!(await rightsControl(req.user.UserId, "users_create")))
+    return res.status(403).json({ msg: "Permission denied" });
+  if (
+    !!!req.body.username ||
+    !!!req.body.email ||
+    !!!req.body.password ||
+    !!!req.body.repassword
+  )
+    return res.status(400).json({ signup: false, message: "empty request" });
+  if (!isEmail(req.body.email))
+    return res
+      .status(401)
+      .json({ signup: false, msg: "incorrect email address" });
+  if (req.body.password.length < 8 || req.body.password !== req.body.repassword)
+    return res.status(401).json({ signup: false, msg: "wrong password" });
+  else if (req.body.password.length < 3)
+    return res.status(401).json({ signup: false, msg: "wrong username" });
+  const User = await createUser(
+    req.body.username,
+    req.body.email,
+    req.body.password
+  );
+  console.log(User);
+  if (!!!User) return res.status(401).json({ signup: false, code: 2 });
+  console.log(req);
+  //
+  const role = getRoleByName("User");
+  if (role !== null) {
+    createUserRoleRel(User.id, role.id);
+  }
+  return res.status(201).json({ user: User });
+});
+
+app.get("/", baseLimits, authVerify, async (req, res) => {
+  if (!(await rightsControl(req.user.UserId, "users_view")))
+    return res.status(403).json({ msg: "Permission denied" });
+  const params = req.query;
+  return res.json(await getUsers(params.offset, params.limit));
 });
 
 module.exports = app;

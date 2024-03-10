@@ -1,4 +1,5 @@
 const sequelize = require("../../database/seq");
+const { Op } = require("sequelize");
 const { models } = require("../../database/seq");
 const {
   isEmail,
@@ -120,20 +121,31 @@ const getUserById = async (userId, confident = false) => {
   let attrs = {};
   confident
     ? (attrs = null)
-    : (attrs = {attributes:{exclude: ["password", "salt"]}});
+    : (attrs = { attributes: { exclude: ["password", "salt"] } });
   return await models.User.findByPk(userId, attrs);
 };
 
-const getUserByEmail = async (email) =>{
-  if(!!!email) return null;
-  return await models.User.findOne({where:{email:email}});
-}
+const getUserByEmail = async (email) => {
+  if (!!!email) return null;
+  return await models.User.findOne({ where: { email: email } });
+};
 
+const getUsers = async (offset, limit) => {
+  let queryParams = {};
+  if (!!offset && Number.isInteger(Number(offset)))
+    queryParams.offset = Number(offset);
+  if (!!limit && Number.isInteger(Number(limit)))
+    queryParams.limit = Number(limit);
+  queryParams.where = { status: { [Op.not]: 3 } };
+  queryParams.attributes = { exclude: ["password", "salt"] };
+  return await models.User.findAll(queryParams);
+};
 module.exports = {
   createUser,
   updateUser,
   removeUser,
   changePassword,
   getUserById,
-  getUserByEmail
+  getUserByEmail,
+  getUsers,
 };
