@@ -1,14 +1,9 @@
 const express = require("express");
 const app = express.Router();
-const {authVerify} = require("../helpers/auth.helper");
+const { authVerify } = require("../helpers/auth.helper");
 const { rightsControl, getIdParam } = require("../helper");
-const {baseLimits} = require("../helpers/limits.helper");
-const {
-  createRole,
-  getRoleById,
-  getRoles,
-  editRole,
-} = require("../controllers/role.controller");
+const { baseLimits } = require("../helpers/limits.helper");
+const { roleController } = require("../controllers/role.controller");
 const {
   getRightByName,
   getRightsByRoles,
@@ -28,11 +23,9 @@ app.use(authVerify);
 
 app.get("/", async (req, res) => {
   if (!(await rightsControl(req.user.UserId, "roles_view")))
-    return res
-      .status(403)
-      .json({ create: false, msg: "permission denied" });
+    return res.status(403).json({ create: false, msg: "permission denied" });
   const params = req.query;
-  return res.json(await getRoles(params.offset, params.limit));
+  return res.json(await roleController.getRoles(params.offset, params.limit));
 });
 
 app.post("/", async (req, res) => {
@@ -40,7 +33,7 @@ app.post("/", async (req, res) => {
     return res.status(403).json({ create: false, msg: "permission denied" });
   if (!!!req.body.name)
     return res.status(400).json({ create: false, msg: "bad request" });
-  const role = await createRole(req.body.name);
+  const role = await roleController.createRole(req.body.name);
   if (!role)
     return res.status(200).json({ create: false, msg: "not unique name" });
   const right = await getRightByName("main_view");
@@ -54,7 +47,7 @@ app.get("/r-:id", async (req, res) => {
     return res.status(403).json({ create: false, msg: "permission denied" });
   try {
     const id = getIdParam(req);
-    const role = await getRoleById(id);
+    const role = await roleController.getRoleById(id);
     if (role) return res.json(role);
     return res.json({ msg: "role not found" });
   } catch (err) {
@@ -67,7 +60,7 @@ app.get("/r-:id/rights", async (req, res) => {
     return res.status(403).json({ msg: "Permission denied" });
   try {
     const id = getIdParam(req);
-    return res.json(await getRightsByRoles(id));
+    return res.json(await roleController.getRightsByRoles(id));
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
@@ -81,7 +74,7 @@ app.post("/r-:id/rights", async (req, res) => {
   try {
     const id = getIdParam(req);
     if (!!req.body.rights) return res.status(400).json({ msg: "Bad request" });
-    return res.json(await addRightsToRole(id, req.body.rights));
+    return res.json(await roleController.addRightsToRole(id, req.body.rights));
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
@@ -95,7 +88,9 @@ app.delete("/r-:id/rights", async (req, res) => {
   try {
     const id = getIdParam(req);
     if (!!req.body.rights) return res.status(400).json({ msg: "Bad request" });
-    return res.json(await removeRightsFromRole(id, req.body.rights));
+    return res.json(
+      await roleController.removeRightsFromRole(id, req.body.rights)
+    );
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
@@ -109,7 +104,7 @@ app.get("/r-:id/users", async (req, res) => {
     return res.status(403).json({ msg: "Permission denied" });
   try {
     const id = getIdParam(req);
-    return res.json(await getUsersByRoles(id));
+    return res.json(await roleController.getUsersByRoles(id));
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
@@ -152,7 +147,7 @@ app.put("/r-:id", async (req, res) => {
     const id = getIdParam(req);
     if (!(await rightsControl(req.user.UserId, "role_edit")))
       return res.status(403).json({ create: false, msg: "permission denied" });
-    return res.json(await editRole(id, req.body.name));
+    return res.json(await roleController.editRole(id, req.body.name));
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });

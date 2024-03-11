@@ -2,7 +2,7 @@ const { models } = require("../../database/seq");
 const config = require("../configs/core/app.config");
 const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
-const { getUserById } = require("../controllers/user.controller");
+const { userController } = require("../controllers/user.controller");
 
 const jwtCreate = (payload, exp) => {
   try {
@@ -30,8 +30,7 @@ const jwtVerify = (token) => {
 
 const authVerify = async (req, res, next) => {
   if (config.debug && config.disableAuthVerify) {
-    
-    req.user = {UserId:1, User: await getUserById(1)};
+    req.user = { UserId: 1, User: await userController.getUserById(1) };
     return next();
   }
   const authHeader = getAuthHeader(req);
