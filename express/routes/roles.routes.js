@@ -8,11 +8,7 @@ const {
   getRightByName,
   getRightsByRoles,
 } = require("../controllers/right.controller");
-const {
-  createRoleRightRelation,
-  addRightsToRole,
-  removeRightsFromRole,
-} = require("../controllers/rolerights.controller");
+const { roleRightController } = require("../controllers/rolerights.controller");
 const {
   createUserRoleRel,
   deleteUserRolRel,
@@ -33,12 +29,12 @@ app.post("/", async (req, res) => {
     return res.status(403).json({ create: false, msg: "permission denied" });
   if (!!!req.body.name)
     return res.status(400).json({ create: false, msg: "bad request" });
-  const role = await roleController.createRole(req.body.name);
+  const role = await roleController.add(req.body.name);
   if (!role)
     return res.status(200).json({ create: false, msg: "not unique name" });
   const right = await getRightByName("main_view");
   let rel;
-  if (right != null) rel = await createRoleRightRelation(role.id, right.id);
+  if (right != null) rel = await roleRightController.add(role.id, right.id);
   return res.status(201).json({ create: true, role: role, rel: rel });
 });
 
@@ -47,7 +43,7 @@ app.get("/r-:id", async (req, res) => {
     return res.status(403).json({ create: false, msg: "permission denied" });
   try {
     const id = getIdParam(req);
-    const role = await roleController.getRoleById(id);
+    const role = await roleController.getById(id);
     if (role) return res.json(role);
     return res.json({ msg: "role not found" });
   } catch (err) {
@@ -147,7 +143,7 @@ app.put("/r-:id", async (req, res) => {
     const id = getIdParam(req);
     if (!(await rightsControl(req.user.UserId, "role_edit")))
       return res.status(403).json({ create: false, msg: "permission denied" });
-    return res.json(await roleController.editRole(id, req.body.name));
+    return res.json(await roleController.edit(id, req.body.name));
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });

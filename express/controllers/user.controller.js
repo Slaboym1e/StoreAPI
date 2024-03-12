@@ -9,7 +9,7 @@ const {
 } = require("../helper");
 
 const userController = {
-  async createUser(username, email, password) {
+  async add(username, email, password) {
     if (
       !!!username ||
       !!!email ||
@@ -41,7 +41,7 @@ const userController = {
       return false;
     }
   },
-  async updateUser(
+  async edit(
     userId,
     username = undefined,
     email = undefined,
@@ -89,7 +89,7 @@ const userController = {
       return false;
     }
   },
-  async removeUser(userId) {
+  async remove(userId) {
     const t = await sequelize.transaction();
     try {
       await models.User.update(
@@ -113,7 +113,7 @@ const userController = {
       return false;
     }
   },
-  async getUserById(userId, confident = false) {
+  async getById(userId, confident = false) {
     if (!!!userId) return null;
     let attrs = {};
     confident

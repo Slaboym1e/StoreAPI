@@ -1,6 +1,6 @@
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
-const {Op} = require("sequelize");
+const { Op } = require("sequelize");
 
 const createRight = async (action) => {
   if (!!!action) return false;
@@ -51,39 +51,46 @@ const removeRight = async (rightId) => {
     return true;
   } catch (err) {
     t.rollback();
-    console.log("RemoveRole - ERROR:" + err);
+    console.log("remove - ERROR:" + err);
     return false;
   }
 };
 
-const getRightByName = async (rightName) =>{
+const getRightByName = async (rightName) => {
   if (!!!rightName) return null;
-  return await models.Rights.findOne({where:{name:rightName}});
-}
+  return await models.Rights.findOne({ where: { name: rightName } });
+};
 
-const getRights = async (offset, limit) =>{
+const getRights = async (offset, limit) => {
   let queryParams = {};
   if (!!offset && Number.isInteger(Number(offset)))
     queryParams.offset = Number(offset);
   if (!!limit && Number.isInteger(Number(limit)))
     queryParams.limit = Number(limit);
   return await models.Rights.findAll(queryParams);
-}
+};
 
-const getRightsByRoles = async (roleIds, actions) =>{
-  if(!!!roleIds) return null;
-  if(!Array.isArray(roleIds))
-    roleIds = [roleIds];
-    const rights = await models.RoleRight.findAll({
-      include: [{model:models.Rights,  where:{ action: {[Op.in]: actions}}}],
-      attributes: ["RightId"],
-      where: { RoleId: roleIds},
-    });
-    let resultArr = [];
-    for(const def of rights){
-      resultArr.push(def.Right);
-    }
-    return resultArr; 
-}
+const getRightsByRoles = async (roleIds, actions) => {
+  if (!!!roleIds) return null;
+  if (!Array.isArray(roleIds)) roleIds = [roleIds];
+  const rights = await models.RoleRight.findAll({
+    include: [
+      { model: models.Rights, where: { action: { [Op.in]: actions } } },
+    ],
+    attributes: ["RightId"],
+    where: { RoleId: roleIds },
+  });
+  let resultArr = [];
+  for (const def of rights) {
+    resultArr.push(def.Right);
+  }
+  return resultArr;
+};
 
-module.exports = { createRight, editRight, getRightByName, getRights, getRightsByRoles };
+module.exports = {
+  createRight,
+  editRight,
+  getRightByName,
+  getRights,
+  getRightsByRoles,
+};

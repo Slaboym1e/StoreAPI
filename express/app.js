@@ -10,6 +10,6 @@ app.use(helmet());
 app.use("/users", require("./routes/user.routes"));
 app.use("/roles", require("./routes/roles.routes"));
 app.use("/rights", require("./routes/rights.routes"));
-
+app.use("/events", require("./routes/events.routes"));
 
 module.exports = app;

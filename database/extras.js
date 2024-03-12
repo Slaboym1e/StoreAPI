@@ -1,8 +1,12 @@
 const extraSetup = (sequelize) => {
-  const { User, UserSession, Role, Rights, RoleRight, UserRoles } = sequelize.models;
+  const { User, UserSession, Role, Rights, RoleRight, UserRoles, Events } =
+    sequelize.models;
 
   User.hasMany(UserSession);
   UserSession.belongsTo(User);
+  //
+  User.hasMany(Events);
+  Events.belongsTo(User);
   //
   UserRoles.removeAttribute("id");
   Role.hasMany(UserRoles);
@@ -16,5 +20,5 @@ const extraSetup = (sequelize) => {
   Rights.hasMany(RoleRight);
   RoleRight.belongsTo(Rights);
   //
-}
+};
 module.exports = { extraSetup };

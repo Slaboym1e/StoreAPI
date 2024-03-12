@@ -2,7 +2,7 @@ const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
 const roleController = {
-  async createRole(name) {
+  async add(name) {
     if (!!!name) return false;
     const t = await sequelize.transaction();
     try {
@@ -13,11 +13,11 @@ const roleController = {
       }
     } catch {
       t.rollback();
-      console.log("createRole - ERROR:" + err);
+      console.log("add - ERROR:" + err);
       return false;
     }
   },
-  async editRole(id, name) {
+  async edit(id, name) {
     if (!!!name || !!!id) return false;
     const t = await sequelize.transaction();
     try {
@@ -33,7 +33,7 @@ const roleController = {
       return false;
     }
   },
-  async removeRole(roleId) {
+  async remove(roleId) {
     if (!!!roleId) return false;
     const t = await sequelize.transaction();
     try {
@@ -47,11 +47,11 @@ const roleController = {
       return true;
     } catch (err) {
       t.rollback();
-      console.log("RemoveRole - ERROR:" + err);
+      console.log("remove - ERROR:" + err);
       return false;
     }
   },
-  async getRoleById(roleId) {
+  async getById(roleId) {
     if (!!!roleId) return null;
     return await models.Role.findByPk(roleId);
   },

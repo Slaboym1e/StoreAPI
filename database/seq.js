@@ -30,6 +30,7 @@ const modelDefs = [
   require("./models/rights.model"),
   require("./models/rolerights.model"),
   require("./models/userroles.model"),
+  require("./models/events.model"),
 ];
 
 for (const modelDef of modelDefs) {

@@ -1,40 +1,42 @@
-require('dotenv').config()
+require("dotenv").config();
 const sequelize = require("./database/seq");
 const app = require("./express/app");
-const { createRight } = require('./express/controllers/right.controller');
-const { createRole } = require('./express/controllers/role.controller');
-const { emptyDB, createAdmin, createCoreRights } = require('./express/helpers/user.helper');
+const { createRight } = require("./express/controllers/right.controller");
+const { add } = require("./express/controllers/role.controller");
+const {
+  emptyDB,
+  createAdmin,
+  createCoreRights,
+} = require("./express/helpers/user.helper");
 
 const PORT = process.env.DEV_PORT;
 
-
 const connectDB = async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('Database Connection: OK');
-        await sequelize.sync();
-    } catch (err) {
-        console.log('Database Connection: ERROR');
-        console.log(err);
-        process.exit(1);
-    }
-}
-
+  try {
+    await sequelize.authenticate();
+    console.log("Database Connection: OK");
+    await sequelize.sync();
+  } catch (err) {
+    console.log("Database Connection: ERROR");
+    console.log(err);
+    process.exit(1);
+  }
+};
 
 const init = async () => {
-    await connectDB();
-    if (await emptyDB()) {
-        const superRole = await createRole("Admin");
-        const superRight = await createRight("all");
-        const superUser = await createAdmin(superRight.id, superRole.id);
-        console.log("SuperUser succesfully create");
-        await createCoreRights();
-        await createRole("User");
-    }
-    console.log('StoreAPI starting...');
-    app.listen(PORT, () => {
-        console.log(`App listen port ${PORT}`);
-    })
-}
+  await connectDB();
+  if (await emptyDB()) {
+    const superRole = await add("Admin");
+    const superRight = await createRight("all");
+    const superUser = await createAdmin(superRight.id, superRole.id);
+    console.log("SuperUser succesfully create");
+    await createCoreRights();
+    await add("User");
+  }
+  console.log("StoreAPI starting...");
+  app.listen(PORT, () => {
+    console.log(`App listen port ${PORT}`);
+  });
+};
 
 init();

@@ -37,7 +37,7 @@ app.post("/signin", authLimits, async (req, res) => {
     if (genPasswordHash(req.body.password, user.salt) !== user.password) {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
-    const session = await sessionController.createSession(user, "Agent");
+    const session = await sessionController.add(user, "Agent");
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
@@ -71,7 +71,7 @@ if (!config.disableSignUp)
       return res.status(401).json({ signup: false, msg: "wrong password" });
     else if (req.body.password.length < 3)
       return res.status(401).json({ signup: false, msg: "wrong username" });
-    const User = await userController.createUser(
+    const User = await userController.add(
       req.body.username,
       req.body.email,
       req.body.password
@@ -85,7 +85,7 @@ if (!config.disableSignUp)
       createUserRoleRel(User.id, role.id);
     }
     //
-    const session = await sessionController.createSession(User, "Agent");
+    const session = await sessionController.add(User, "Agent");
     return res.status(201).json({
       signup: true,
       access_token: session.jwt,
@@ -120,7 +120,7 @@ app.post("/refresh", authLimits, async (req, res) => {
   );
   if (session === null)
     return res.status(401).json({ response: false, message: "Bad token" });
-  const Upd = await sessionController.updateSession(session.id, session.UserId);
+  const Upd = await sessionController.update(session.id, session.UserId);
   if (!Upd) return res.json({ response: false, code: 3 });
   return res.json({
     response: true,
@@ -133,13 +133,13 @@ app.post("/refresh", authLimits, async (req, res) => {
 
 app.post("/logout", authLimits, authVerify, async (req, res) => {
   return res.json({
-    logout: await sessionController.removeSession(req.user.id),
+    logout: await sessionController.remove(req.user.id),
   });
 });
 
 app.post("/logoutall", authLimits, authVerify, async (req, res) => {
   return res.json({
-    logout: await sessionController.removeAllSessions(req.user.id),
+    logout: await sessionController.removeAll(req.user.id),
   });
 });
 
@@ -151,7 +151,7 @@ app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
       id !== req.user.UserId
     )
       return res.status(403).json({ msg: "perminssion denied" });
-    const user = await userController.getUserById(id);
+    const user = await userController.getById(id);
     if (user !== null) return res.status(200).json(user);
     return res.status(404).json({ msg: "404 - Not found" });
   } catch ({ name, message }) {
@@ -210,7 +210,7 @@ app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
     )
       return res.status(403).json({ msg: "permission denied" });
     return res.json({
-      update: await userController.updateUser(
+      update: await userController.edit(
         id,
         data.username,
         data.email,
@@ -232,7 +232,7 @@ app.delete("/u-:id", baseLimits, authVerify, async (req, res) => {
       req.user.UserId !== id
     )
       return res.status(403).json({ msg: "permission denied" });
-    return res.json({ remove: await userController.removeUser(id) });
+    return res.json({ remove: await userController.remove(id) });
   } catch ({ name, message }) {
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
@@ -258,7 +258,7 @@ app.post("/add", baseLimits, authVerify, async (req, res) => {
     return res.status(401).json({ signup: false, msg: "wrong password" });
   else if (req.body.password.length < 3)
     return res.status(401).json({ signup: false, msg: "wrong username" });
-  const User = await userController.createUser(
+  const User = await userController.add(
     req.body.username,
     req.body.email,
     req.body.password

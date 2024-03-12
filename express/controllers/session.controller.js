@@ -3,7 +3,7 @@ const sequelize = require("../../database/seq");
 const { jwtCreate } = require("../helpers/auth.helper");
 
 const sessionController = {
-  async createSession(User, userAgent) {
+  async add(User, userAgent) {
     const t = await sequelize.transaction();
     try {
       const session = await models.UserSession.create(
@@ -38,7 +38,7 @@ const sessionController = {
       return undefined;
     }
   },
-  async updateSession(sessionId, userId) {
+  async update(sessionId, userId) {
     const t = await sequelize.transaction();
     let datetime = new Date().toJSON();
     try {
@@ -73,7 +73,7 @@ const sessionController = {
       return false;
     }
   },
-  async removeSession(sessionId) {
+  async remove(sessionId) {
     const t = await sequelize.transaction();
     try {
       await models.UserSession.destroy(
@@ -88,11 +88,11 @@ const sessionController = {
       return true;
     } catch (err) {
       t.rollback();
-      console.log("removeSession: " + err);
+      console.log("remove: " + err);
       return false;
     }
   },
-  async removeAllSessions(userId) {
+  async removeAll(userId) {
     const t = await sequelize.transaction();
     try {
       await models.UserSession.destroy(
@@ -107,7 +107,7 @@ const sessionController = {
       return true;
     } catch (err) {
       await t.rollback();
-      console.log("removeAllSessions: " + err);
+      console.log("removeAll: " + err);
       return false;
     }
   },
