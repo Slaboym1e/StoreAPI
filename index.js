@@ -2,7 +2,7 @@ require("dotenv").config();
 const sequelize = require("./database/seq");
 const app = require("./express/app");
 const { createRight } = require("./express/controllers/right.controller");
-const { add } = require("./express/controllers/role.controller");
+const { roleController } = require("./express/controllers/role.controller");
 const {
   emptyDB,
   createAdmin,
@@ -26,12 +26,12 @@ const connectDB = async () => {
 const init = async () => {
   await connectDB();
   if (await emptyDB()) {
-    const superRole = await add("Admin");
+    const superRole = await roleController.add("Admin");
     const superRight = await createRight("all");
     const superUser = await createAdmin(superRight.id, superRole.id);
     console.log("SuperUser succesfully create");
     await createCoreRights();
-    await add("User");
+    await roleController.add("User");
   }
   console.log("StoreAPI starting...");
   app.listen(PORT, () => {

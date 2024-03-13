@@ -1,4 +1,4 @@
-const { createUser } = require("../controllers/user.controller");
+const { userController } = require("../controllers/user.controller");
 const { add } = require("../controllers/role.controller");
 const { createRight } = require("../controllers/right.controller");
 const { roleRightController } = require("../controllers/rolerights.controller");
@@ -25,7 +25,7 @@ const createCoreRights = async () => {
 
 const createAdmin = async (superRightId, superRoleId) => {
   const RoleRightRel = await roleRightController.add(superRoleId, superRightId);
-  const user = await createUser(
+  const user = await userController.add(
     superUserConf.username,
     superUserConf.email,
     superUserConf.password

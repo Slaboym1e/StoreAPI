@@ -20,10 +20,10 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
     },
     start_date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
     },
     end_date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
     },
   });
 };
