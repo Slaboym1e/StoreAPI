@@ -70,6 +70,7 @@ const roleController = {
   async getRolesByUser(userId) {
     if (!!!userId) return null;
     return await models.UserRoles.findAll({
+      include: { model: models.Role },
       where: { UserId: userId },
     });
   },
