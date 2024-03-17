@@ -41,21 +41,17 @@ const userController = {
       return false;
     }
   },
-  async edit(
-    userId,
-    username = undefined,
-    email = undefined,
-    avatar = undefined
-  ) {
+  async edit(userId, username, email, avatar) {
     if (!!!userId) {
       return false;
     }
-    let attr = null;
+    let attr = {};
     if (username !== undefined) attr.username = username;
     if (email !== undefined && isEmail(email)) attr.email = email;
     if (avatar !== undefined) attr.avatar = avatar;
     if (attr === null) return false;
     const t = await sequelize.transaction();
+    console.log(attr);
     try {
       const res = await models.User.update(
         attr,

@@ -146,8 +146,9 @@ app.post("/logoutall", authLimits, authVerify, async (req, res) => {
 app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
+    console.log(req.user.UserId);
     if (
-      (await rightsControl(req.user.UserId, "users_view")) &&
+      !(await rightsControl(req.user.UserId, "users_view")) &&
       id !== req.user.UserId
     )
       return res.status(403).json({ msg: "perminssion denied" });
@@ -155,6 +156,29 @@ app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
     if (user !== null) return res.status(200).json(user);
     return res.status(404).json({ msg: "404 - Not found" });
   } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
+app.post("/u-:id/changepass", baseLimits, authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "users_edit")) &&
+      id !== req.user.UserId
+    )
+      return res.status(403).json({ msg: "perminssion denied" });
+    if (!!!req.body.password)
+      return res.status(400).json({ msg: "empty request body" });
+    const password = await userController.changePassword(
+      req.user.UserId,
+      req.body.password
+    );
+    return res.status(200).json({ update: password });
+  } catch ({ name, message }) {
+    console.log(message);
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
     return res.status(400).json({ msg: "unexpect error" });

@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const jsonwebtoken = require("jsonwebtoken");
 const { models } = require("../database/seq");
-const config = require ("./configs/core/app.config");
+const config = require("./configs/core/app.config");
 const { getRightsByRoles } = require("./controllers/right.controller");
 
 const characters =
@@ -47,22 +47,23 @@ function getIdParam(req) {
 }
 
 const rightsControl = async (userID, action) => {
-  if (!!!userID || !!!action) return false;
-  console.log(config.debug);
-  console.log(config.disableRightsControl);
-  if(config.debug && config.disableRightsControl)
+  if (typeof userID === "undefined" || typeof action === "undefined")
+    return false;
+  if (Boolean(config.debug) && Boolean(config.disableRightsControl)) {
+    console.log("Permission true");
     return true;
+  }
   const roles = await models.UserRoles.findAll({
     attributes: ["RoleId"],
     where: { UserId: userID },
   });
   if (roles === null) return false;
   //
-  let inArr = []
-  if(Array.isArray(action)){
+  let inArr = [];
+  if (Array.isArray(action)) {
     inArr = action;
     inArr.push("all");
-  }else{
+  } else {
     inArr = ["all", action];
   }
   //
