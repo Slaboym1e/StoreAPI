@@ -1,6 +1,14 @@
 const extraSetup = (sequelize) => {
-  const { User, UserSession, Role, Rights, RoleRight, UserRoles, Events } =
-    sequelize.models;
+  const {
+    User,
+    UserSession,
+    Role,
+    Rights,
+    RoleRight,
+    UserRoles,
+    Events,
+    Achievements,
+  } = sequelize.models;
 
   User.hasMany(UserSession);
   UserSession.belongsTo(User);
@@ -20,5 +28,13 @@ const extraSetup = (sequelize) => {
   Rights.hasMany(RoleRight);
   RoleRight.belongsTo(Rights);
   //
+  User.hasMany(Achievements, { foreignKey: "AuthorId" });
+  Achievements.belongsTo(User);
+  //
+  User.hasMany(Achievements, { foreignKey: "UserId" });
+  Achievements.belongsTo(User);
+  //
+  Events.hasMany(Achievements, { foreignKey: "EventId" });
+  Achievements.belongsTo(Events);
 };
 module.exports = { extraSetup };

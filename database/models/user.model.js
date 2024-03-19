@@ -34,6 +34,16 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: 1,
     },
+    about: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    name: {
+      type: DataTypes.STRING(32),
+    },
+    soname: {
+      type: DataTypes.STRING(32),
+    },
   });
 };
 

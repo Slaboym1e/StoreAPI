@@ -114,7 +114,7 @@ const userController = {
     let attrs = {};
     confident
       ? (attrs = null)
-      : (attrs = { attributes: { exclude: ["password", "salt"] } });
+      : (attrs = { attributes: { exclude: ["password", "salt", "about"] } });
     return await models.User.findByPk(userId, attrs);
   },
   async getUserByEmail(email) {
@@ -128,8 +128,15 @@ const userController = {
     if (!!limit && Number.isInteger(Number(limit)))
       queryParams.limit = Number(limit);
     queryParams.where = { status: { [Op.not]: 3 } };
-    queryParams.attributes = { exclude: ["password", "salt"] };
+    queryParams.attributes = { exclude: ["password", "salt", "about"] };
     return await models.User.findAll(queryParams);
+  },
+  async getPortfolio(id) {
+    if (!!!id) return null;
+    return await models.User.findOne({
+      include: ["id", "name", "soname", "about"],
+      where: { id: id },
+    });
   },
 };
 module.exports = { userController };

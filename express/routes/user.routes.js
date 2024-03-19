@@ -44,6 +44,14 @@ app.post("/signin", authLimits, async (req, res) => {
       expires_in: 3600,
       type: "Bearer",
       refresh_token: session.rt,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        status: user.status,
+        name: user.name,
+        soname: user.soname,
+      },
     });
   } catch (err) {
     console.log(`SIGNIN ERROR: ${err}`);
@@ -92,6 +100,14 @@ if (!config.disableSignUp)
       expires_in: 3600,
       type: "Bearer",
       refresh_token: session.rt,
+      user: {
+        id: User.id,
+        username: User.username,
+        email: User.email,
+        status: User.status,
+        name: User.name,
+        soname: User.soname,
+      },
     });
   });
 
@@ -156,6 +172,34 @@ app.get("/u-:id", baseLimits, authVerify, async (req, res) => {
     if (user !== null) return res.status(200).json(user);
     return res.status(404).json({ msg: "404 - Not found" });
   } catch ({ name, message }) {
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
+app.get("/u-:id/portfolio", baseLimits, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    const portfolio = await userController.getPortfolio(id);
+    return res.json(portfolio);
+  } catch ({ name, message }) {
+    console.log(message);
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
+app.get("/u-:id/achivments", baseLimits, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    return res.json(await AchiveController.getByUserId(id));
+    // const portfolio = await userController.getPortfolio(id);
+    // return res.json(portfolio);
+    return res.json({ achivments: [] });
+  } catch ({ name, message }) {
+    console.log(message);
     if (name === "TypeError")
       return res.status(400).json({ msg: "uncorrect id" });
     return res.status(400).json({ msg: "unexpect error" });
