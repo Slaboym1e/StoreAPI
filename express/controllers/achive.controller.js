@@ -2,12 +2,16 @@ const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
 const AchiveController = {
-  async add(title, userId, eventId, authorId) {
-    if (!!!title || !!!userId || !!!eventId || !!!authorId) return;
+  async add(title, userId, eventId, ModeratorId) {
+    if (!!!title || !!!userId || !!!eventId) return;
     const t = await sequelize.transaction();
     try {
       const achive = await models.Achievements.create(
-        { title: title, UserId: userId, AuthodId: authorId, EventId: eventId },
+        {
+          title: title,
+          UserId: userId,
+          EventId: eventId,
+        },
         { transaction: t }
       );
       await t.commit();
@@ -18,7 +22,7 @@ const AchiveController = {
       return;
     }
   },
-  async getByUserId(id) {
+  async getAllByUserId(id, offset, limit) {
     if (!!!id) return;
     let queryParams = {};
     if (!!offset && Number.isInteger(Number(offset)))
@@ -27,6 +31,24 @@ const AchiveController = {
       queryParams.limit = Number(limit);
     queryParams.where = { UserId: id };
     return await models.Achievements.findAll(queryParams);
+  },
+  async approveAllByUserId(userId) {
+    if (!!!userId) return;
+    const t = await sequelize.transaction();
+    try {
+      const update = await models.Achievements.update(
+        { approve: true },
+        { where: { UserId: userId } },
+        { transaction: t }
+      );
+      await t.commit();
+      console.log(update[0]);
+      return true;
+    } catch ({ name, message }) {
+      await t.rollback();
+      console.log(message);
+      return;
+    }
   },
 };
 

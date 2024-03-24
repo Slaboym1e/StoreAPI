@@ -51,16 +51,12 @@ const authVerify = async (req, res, next) => {
       .status(401)
       .json({ response: false, message: "Incorrect token" });
   console.log(verifyData.data.payload);
-  const session = await models.UserSession.findOne(
-    { include: models.User },
-    {
-      where: {
-        id: verifyData.data.payload.sessionId,
-        last_refresh: verifyData.data.payload.sessionRefresh,
-        UserId: verifyData.data.payload.userId,
-      },
-    }
-  );
+  const session = await models.UserSession.findOne({
+    include: { model: models.User },
+    where: {
+      id: verifyData.data.payload.sessionId,
+    },
+  });
   if (!!!session)
     return res.status(401).json({ response: false, message: "Bad token" });
   req.user = session;

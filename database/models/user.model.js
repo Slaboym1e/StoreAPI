@@ -44,6 +44,10 @@ module.exports = (sequelize) => {
     soname: {
       type: DataTypes.STRING(32),
     },
+    portfolioConfirm: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   });
 };
 

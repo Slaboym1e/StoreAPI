@@ -31,7 +31,7 @@ const sessionController = {
         },
         "2 days"
       );
-      return { jwt: jwt, rt: rt };
+      return { jwt: jwt, rt: rt, id: session.id };
     } catch (err) {
       console.log(err);
       t.rollback();

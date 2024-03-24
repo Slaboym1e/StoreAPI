@@ -18,6 +18,10 @@ const { sessionController } = require("../controllers/session.controller");
 const { roleController } = require("../controllers/role.controller");
 const { getRightsByRoles } = require("../controllers/right.controller");
 const { createUserRoleRel } = require("../controllers/userroles.controller");
+const { AchiveController } = require("../controllers/achive.controller");
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
 
 app.post("/signin", authLimits, async (req, res) => {
   if (!!!req.body.email || !!!req.body.password)
@@ -38,12 +42,13 @@ app.post("/signin", authLimits, async (req, res) => {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
     const session = await sessionController.add(user, "Agent");
+    res.cookie("refreshToken", session.rt, { httpOnly: true });
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
-      refresh_token: session.rt,
+      session: session.id,
       user: {
         id: user.id,
         username: user.username,
@@ -94,12 +99,12 @@ if (!config.disableSignUp)
     }
     //
     const session = await sessionController.add(User, "Agent");
+    res.cookie("refreshToken", session.rt, { httpOnly: true });
     return res.status(201).json({
       signup: true,
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
-      refresh_token: session.rt,
       user: {
         id: User.id,
         username: User.username,
@@ -112,11 +117,13 @@ if (!config.disableSignUp)
   });
 
 app.post("/refresh", authLimits, async (req, res) => {
-  const authHeader = getAuthHeader(req);
-  if (authHeader === null)
+  const refreshCookie = req.cookies.refreshToken;
+  if (!!!refreshCookie || refreshCookie == {}) {
+    console.log("REFRESH - FALSE; COOKIE UNAVAILABLE");
     return res
       .status(401)
-      .json({ response: false, message: "Token header not found" });
+      .json({ refresh: false, msg: "cookie is unavailable" });
+  }
   let verifyData = jwtVerify(authHeader);
   if (!verifyData.valid)
     return res.status(401).json({ response: false, message: "Bad token" });
@@ -148,6 +155,7 @@ app.post("/refresh", authLimits, async (req, res) => {
 });
 
 app.post("/logout", authLimits, authVerify, async (req, res) => {
+  console.log(req.user);
   return res.json({
     logout: await sessionController.remove(req.user.id),
   });
@@ -191,13 +199,36 @@ app.get("/u-:id/portfolio", baseLimits, async (req, res) => {
   }
 });
 
-app.get("/u-:id/achivments", baseLimits, async (req, res) => {
+app.get("/u-:id/achievements", baseLimits, async (req, res) => {
   try {
     const id = getIdParam(req);
-    return res.json(await AchiveController.getByUserId(id));
-    // const portfolio = await userController.getPortfolio(id);
-    // return res.json(portfolio);
-    return res.json({ achivments: [] });
+    return res.json(await AchiveController.getAllByUserId(id));
+  } catch ({ name, message }) {
+    console.log(message);
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
+app.post("/u-:id/achievements", baseLimits, authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "users_edit")) &&
+      id !== req.user.UserId
+    )
+      return res.status(403).json({ msg: "perminssion denied" });
+    if (!!!req.body.eventId || !!!req.body.title)
+      return res.status(400).json({ msg: "eventId or title is undefined" });
+    const achieve = await AchiveController.add(
+      req.body.title,
+      id,
+      req.body.eventId
+    );
+    console.log(achieve);
+    if (achieve !== null && !!achieve) return res.status(201).json(achieve);
+    return res.status(200).json({ msg: "achieve add error" });
   } catch ({ name, message }) {
     console.log(message);
     if (name === "TypeError")
@@ -281,6 +312,8 @@ app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
       update: await userController.edit(
         id,
         data.username,
+        data.name,
+        data.soname,
         data.email,
         data.avatar
       ),

@@ -13,8 +13,8 @@ const extraSetup = (sequelize) => {
   User.hasMany(UserSession);
   UserSession.belongsTo(User);
   //
-  User.hasMany(Events);
-  Events.belongsTo(User);
+  User.hasMany(Events, { foreignKey: "AuthorId" });
+  Events.belongsTo(User, { as: "Author" });
   //
   UserRoles.removeAttribute("id");
   Role.hasMany(UserRoles);
@@ -28,8 +28,8 @@ const extraSetup = (sequelize) => {
   Rights.hasMany(RoleRight);
   RoleRight.belongsTo(Rights);
   //
-  User.hasMany(Achievements, { foreignKey: "AuthorId" });
-  Achievements.belongsTo(User);
+  User.hasMany(User, { foreignKey: "ModeratorId" });
+  User.belongsTo(User);
   //
   User.hasMany(Achievements, { foreignKey: "UserId" });
   Achievements.belongsTo(User);

@@ -9,7 +9,7 @@ const eventsConroller = {
     if (start_date !== undefined) attr.start_date = start_date;
     if (end_date !== undefined) attr.end_date = end_date;
     console.log(authorId);
-    attr.UserId = authorId;
+    attr.AuthorId = authorId;
     const t = await sequelize.transaction();
     try {
       const res = await models.Events.create(attr, { transaction: t });
@@ -31,6 +31,11 @@ const eventsConroller = {
       queryParams.offset = Number(offset);
     if (!!limit && Number.isInteger(Number(limit)))
       queryParams.limit = Number(limit);
+    queryParams.include = {
+      model: models.User,
+      as: "Author",
+      attributes: ["id", "name", "soname", "username"],
+    };
     return await models.Events.findAll(queryParams);
   },
 };

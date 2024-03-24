@@ -7,6 +7,7 @@ const {
   generateString,
   genPasswordHash,
 } = require("../helper");
+const { AchiveController } = require("./achive.controller");
 
 const userController = {
   async add(username, email, password) {
@@ -41,7 +42,7 @@ const userController = {
       return false;
     }
   },
-  async edit(userId, username, email, avatar) {
+  async edit(userId, username, name, soname, email, avatar) {
     if (!!!userId) {
       return false;
     }
@@ -49,6 +50,8 @@ const userController = {
     if (username !== undefined) attr.username = username;
     if (email !== undefined && isEmail(email)) attr.email = email;
     if (avatar !== undefined) attr.avatar = avatar;
+    if (name !== undefined) attr.name = name;
+    if (soname !== undefined) attr.soname = soname;
     if (attr === null) return false;
     const t = await sequelize.transaction();
     console.log(attr);
@@ -137,6 +140,28 @@ const userController = {
       include: ["id", "name", "soname", "about"],
       where: { id: id },
     });
+  },
+  async approvePortfolio(userId, moderatorId) {
+    if (!!!userId || !!!moderatorId) return;
+    const achievements = await AchiveController.approveAllByUserId(userId);
+    if (achievements == null) return;
+    const t = await sequelize.transaction();
+    try {
+      const res = await models.User.update(
+        {
+          portfolioConfirm: true,
+          ModeratorId: moderatorId,
+        },
+        { where: { id: userId } },
+        { transaction: t }
+      );
+      await t.commit();
+      return res;
+    } catch ({ name, message }) {
+      console.log(message);
+      await t.rollback();
+      return;
+    }
   },
 };
 module.exports = { userController };
