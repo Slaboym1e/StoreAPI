@@ -42,13 +42,17 @@ app.post("/signin", authLimits, async (req, res) => {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
     const session = await sessionController.add(user, "Agent");
-    res.cookie("refreshToken", session.rt, { httpOnly: true });
+    // res.cookie("refreshToken", session.rt, {
+    //   httpOnly: true,
+    //   maxAge: "1728000000",
+    // });
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
-      session: session.id,
+      //session: session.id,
+      refresh: session.rt,
       user: {
         id: user.id,
         username: user.username,
@@ -117,40 +121,48 @@ if (!config.disableSignUp)
   });
 
 app.post("/refresh", authLimits, async (req, res) => {
-  const refreshCookie = req.cookies.refreshToken;
-  if (!!!refreshCookie || refreshCookie == {}) {
-    console.log("REFRESH - FALSE; COOKIE UNAVAILABLE");
+  const Token = getAuthHeader(req);
+  console.log(Token);
+  // const refreshCookie = req.cookies.refreshToken;
+  // console.log(req.cookies);
+  if (!!!Token) {
+    console.log("REFRESH - FALSE; Token UNAVAILABLE");
     return res
       .status(401)
       .json({ refresh: false, msg: "cookie is unavailable" });
   }
-  let verifyData = jwtVerify(authHeader);
+  console.log(Token.token);
+  let verifyData = jwtVerify(Token.token);
   if (!verifyData.valid)
     return res.status(401).json({ response: false, message: "Bad token" });
-  if (!!!verifyData.data.payload.refresh || !verifyData.data.payload.refresh)
+  if (!!!verifyData.data.data.refresh || !verifyData.data.data.refresh)
     return res
       .status(401)
       .json({ response: false, message: "Incorrect token" });
   if (
-    !!!verifyData.data.payload.sessionId ||
-    !!!verifyData.data.payload.sessionRefresh ||
-    !!!verifyData.data.payload.userId
+    !!!verifyData.data.data.sessionId ||
+    !!!verifyData.data.data.sessionRefresh ||
+    !!!verifyData.data.data.userId
   )
     return res.status(401).json({ response: false, code: 2 });
   let session = await sessionController.getSessionByUserIdAndRefresh(
-    verifyData.data.payload.userId,
-    verifyData.data.payload.sessionRefresh
+    verifyData.data.data.userId,
+    verifyData.data.data.sessionRefresh
   );
   if (session === null)
-    return res.status(401).json({ response: false, message: "Bad token" });
+    return res
+      .status(401)
+      .json({ response: false, message: "Session unavailable" });
   const Upd = await sessionController.update(session.id, session.UserId);
+
   if (!Upd) return res.json({ response: false, code: 3 });
+  //res.cookie("refreshToken", Upd.rt, { httpOnly: true, maxAge: "1728000000" });
   return res.json({
     response: true,
     access_token: Upd.jwt,
     type: "Bearer",
     expires_in: 3600,
-    refresh_token: Upd.rt,
+    refresh: Upd.rt,
   });
 });
 

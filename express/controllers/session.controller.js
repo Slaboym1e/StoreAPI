@@ -29,7 +29,7 @@ const sessionController = {
           userId: User.id,
           refresh: true,
         },
-        "2 days"
+        "2d"
       );
       return { jwt: jwt, rt: rt, id: session.id };
     } catch (err) {
@@ -64,7 +64,7 @@ const sessionController = {
           userId: userId,
           refresh: true,
         },
-        "2 days"
+        "2d"
       );
       return { jwt: jwt, rt: rt };
     } catch (err) {

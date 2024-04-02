@@ -50,6 +50,16 @@ const AchiveController = {
       return;
     }
   },
+  async getAllByEvent(id, offset, limit) {
+    if (!!!id) return;
+    let queryParams = {};
+    if (!!offset && Number.isInteger(Number(offset)))
+      queryParams.offset = Number(offset);
+    if (!!limit && Number.isInteger(Number(limit)))
+      queryParams.limit = Number(limit);
+    queryParams.where = { EventId: id };
+    return await models.Achievements.findAll(queryParams);
+  },
 };
 
 module.exports = { AchiveController };

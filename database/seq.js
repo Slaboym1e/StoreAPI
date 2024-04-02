@@ -21,6 +21,7 @@ const { extraSetup } = require("./extras");
 const sequelize = new Sequelize({
   dialect: "sqlite",
   storage: "./database.sqlite",
+  logging: false,
 });
 
 const modelDefs = [
@@ -32,6 +33,7 @@ const modelDefs = [
   require("./models/userroles.model"),
   require("./models/events.model"),
   require("./models/achieve.model"),
+  require("./models/workgroup.model"),
 ];
 
 for (const modelDef of modelDefs) {

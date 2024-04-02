@@ -163,5 +163,13 @@ const userController = {
       return;
     }
   },
+  async getListByWorkGroupId(id) {
+    if (!!!id) return;
+    return await models.User.findAll({
+      attributes: ["id", "name", "soname"],
+      where: { ClassId: id },
+      order: [["soname", "ASC"]],
+    });
+  },
 };
 module.exports = { userController };

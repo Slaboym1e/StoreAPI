@@ -6,11 +6,9 @@ const { userController } = require("../controllers/user.controller");
 
 const jwtCreate = (payload, exp) => {
   try {
-    let token = jsonwebtoken.sign(
-      { payload: payload, iat: Math.floor(Date.now()) },
-      process.env.SECRET,
-      { expiresIn: exp }
-    );
+    let token = jsonwebtoken.sign({ data: payload }, process.env.SECRET, {
+      expiresIn: exp,
+    });
     return token;
   } catch (e) {
     console.log(e);
@@ -21,6 +19,17 @@ const jwtCreate = (payload, exp) => {
 const jwtVerify = (token) => {
   try {
     let decoded = jsonwebtoken.verify(token, process.env.SECRET);
+    // console.log(
+    //   `TOKEN exp = ${new Date(decoded.exp).toLocaleString("Ru-Ru", {
+    //     year: "numeric",
+    //     month: "2-digit",
+    //     day: "2-digit",
+    //     hour: "2-digit",
+    //     minute: "2-digit",
+    //     second: "2-digit",
+    //   })}`
+    // );
+    //if (decoded.exp < Date.now()) return { valid: false };
     return { valid: true, data: decoded };
   } catch (e) {
     console.log(`JWTVERIFY ERROR: ${e}`);
@@ -44,17 +53,18 @@ const authVerify = async (req, res, next) => {
       .status(401)
       .json({ response: false, message: "Incorrect token type" });
   let verifyData = jwtVerify(authHeader.token);
+  //console.log(JSON.stringify(verifyData));
   if (!verifyData.valid)
     return res.status(401).json({ response: false, message: "Bad token" });
-  if (!!verifyData.data.payload.refresh && verifyData.data.payload.refresh)
+  if (!!verifyData.data.data.refresh && verifyData.data.data.refresh)
     return res
       .status(401)
       .json({ response: false, message: "Incorrect token" });
-  console.log(verifyData.data.payload);
+  //console.log(verifyData);
   const session = await models.UserSession.findOne({
     include: { model: models.User },
     where: {
-      id: verifyData.data.payload.sessionId,
+      id: verifyData.data.data.sessionId,
     },
   });
   if (!!!session)

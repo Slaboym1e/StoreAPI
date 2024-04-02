@@ -8,6 +8,7 @@ const extraSetup = (sequelize) => {
     UserRoles,
     Events,
     Achievements,
+    WorkGroup,
   } = sequelize.models;
 
   User.hasMany(UserSession);
@@ -29,12 +30,18 @@ const extraSetup = (sequelize) => {
   RoleRight.belongsTo(Rights);
   //
   User.hasMany(User, { foreignKey: "ModeratorId" });
-  User.belongsTo(User);
+  User.belongsTo(User, { as: "Moderator" });
   //
   User.hasMany(Achievements, { foreignKey: "UserId" });
   Achievements.belongsTo(User);
   //
   Events.hasMany(Achievements, { foreignKey: "EventId" });
   Achievements.belongsTo(Events);
+  //
+  WorkGroup.hasMany(User, { foreignKey: "ClassId" });
+  User.belongsTo(WorkGroup, { as: "Class" });
+  //
+  User.hasMany(WorkGroup, { foreignKey: "AuthorId" });
+  WorkGroup.belongsTo(User, { as: "Author" });
 };
 module.exports = { extraSetup };
