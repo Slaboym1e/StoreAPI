@@ -42,7 +42,7 @@ const userController = {
       return false;
     }
   },
-  async edit(userId, username, name, soname, email, avatar) {
+  async edit(userId, username, name, soname, email, about, avatar) {
     if (!!!userId) {
       return false;
     }
@@ -52,6 +52,7 @@ const userController = {
     if (avatar !== undefined) attr.avatar = avatar;
     if (name !== undefined) attr.name = name;
     if (soname !== undefined) attr.soname = soname;
+    if (about !== undefined) attr.about = about;
     if (attr === null) return false;
     const t = await sequelize.transaction();
     console.log(attr);
@@ -117,7 +118,7 @@ const userController = {
     let attrs = {};
     confident
       ? (attrs = null)
-      : (attrs = { attributes: { exclude: ["password", "salt", "about"] } });
+      : (attrs = { attributes: { exclude: ["password", "salt"] } });
     return await models.User.findByPk(userId, attrs);
   },
   async getUserByEmail(email) {
@@ -137,7 +138,7 @@ const userController = {
   async getPortfolio(id) {
     if (!!!id) return null;
     return await models.User.findOne({
-      include: ["id", "name", "soname", "about"],
+      attributes: ["id", "name", "soname", "about"],
       where: { id: id },
     });
   },

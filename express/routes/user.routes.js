@@ -327,6 +327,7 @@ app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
         data.name,
         data.soname,
         data.email,
+        data.about,
         data.avatar
       ),
     });
