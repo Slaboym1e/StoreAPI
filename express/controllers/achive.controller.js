@@ -29,6 +29,12 @@ const AchiveController = {
       queryParams.offset = Number(offset);
     if (!!limit && Number.isInteger(Number(limit)))
       queryParams.limit = Number(limit);
+    queryParams.include = [
+      {
+        model: models.Events,
+        attributes: ["title", "description", "start_date", "end_date"],
+      },
+    ];
     queryParams.where = { UserId: id };
     return await models.Achievements.findAll(queryParams);
   },
