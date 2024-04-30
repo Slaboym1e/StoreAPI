@@ -1,4 +1,4 @@
-require("dotenv").config();
+//require("dotenv").config();
 const sequelize = require("./database/seq");
 const app = require("./express/app");
 const { createRight } = require("./express/controllers/right.controller");
@@ -15,7 +15,7 @@ const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database Connection: OK");
-    await sequelize.sync();
+    await sequelize.sync({ force: false });
   } catch (err) {
     console.log("Database Connection: ERROR");
     console.log(err);

@@ -1,3 +1,4 @@
+const { Op, Sequelize } = require("sequelize");
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
@@ -68,6 +69,25 @@ const eventsConroller = {
       await t.rollback();
       return false;
     }
+  },
+
+  async search(request) {
+    if (!!!request || request === "") return false;
+    let preRequest = request.trim();
+    return await models.Events.findAll({
+      where: {
+        [Op.or]: [
+          // prettier-ignore
+
+          {id:{ [Op.substring]: preRequest }},
+          // prettier-ignore
+          {title: { [Op.substring]: preRequest }},
+          { description: { [Op.substring]: preRequest } },
+          { start_date: { [Op.substring]: preRequest } },
+          { end_date: { [Op.substring]: preRequest } },
+        ],
+      },
+    });
   },
 };
 

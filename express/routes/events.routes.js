@@ -82,4 +82,11 @@ app.get("/e-:id/achievements", authVerify, async (req, res) => {
   }
 });
 
+app.get("/search", authVerify, async (req, res) => {
+  if (!(await rightsControl(req.user.UserId, "events_view")))
+    return res.status(403).json({ create: false, msg: "permission denied" });
+  const params = req.query;
+  return res.json(await eventsConroller.search(params.q));
+});
+
 module.exports = app;
