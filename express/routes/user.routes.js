@@ -16,7 +16,10 @@ const {
 const { userController } = require("../controllers/user.controller");
 const { sessionController } = require("../controllers/session.controller");
 const { roleController } = require("../controllers/role.controller");
-const { getRightsByRoles } = require("../controllers/right.controller");
+const {
+  getRightsByRoles,
+  getRightsByUserId,
+} = require("../controllers/right.controller");
 const { createUserRoleRel } = require("../controllers/userroles.controller");
 const { AchiveController } = require("../controllers/achive.controller");
 const cookieParser = require("cookie-parser");
@@ -49,9 +52,7 @@ app.post("/signin", authLimits, async (req, res) => {
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
-      expires_in: 3600,
-      type: "Bearer",
-      //session: session.id,
+      permissions: await getRightsByUserId(user.id),
       refresh: session.rt,
       user: {
         id: user.id,
@@ -109,6 +110,7 @@ if (!config.disableSignUp)
       access_token: session.jwt,
       expires_in: 3600,
       type: "Bearer",
+      permissions: [],
       user: {
         id: User.id,
         username: User.username,
@@ -241,6 +243,29 @@ app.post("/u-:id/achievements", baseLimits, authVerify, async (req, res) => {
     console.log(achieve);
     if (achieve !== null && !!achieve) return res.status(201).json(achieve);
     return res.status(200).json({ msg: "achieve add error" });
+  } catch ({ name, message }) {
+    console.log(message);
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
+app.put("/u-:id/achievements", baseLimits, authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (
+      !(await rightsControl(req.user.UserId, "users_edit")) &&
+      id !== req.user.UserId
+    )
+      return res.status(403).json({ msg: "perminssion denied" });
+    if (!!!req.body.achievementId)
+      return res
+        .status(400)
+        .json({ msg: "achievementId or title is undefined" });
+    return res.json({
+      remove: await AchiveController.removeById(req.body.achievementId),
+    });
   } catch ({ name, message }) {
     console.log(message);
     if (name === "TypeError")
@@ -392,7 +417,15 @@ app.get("/", baseLimits, authVerify, async (req, res) => {
   if (!(await rightsControl(req.user.UserId, "users_view")))
     return res.status(403).json({ msg: "Permission denied" });
   const params = req.query;
+  //console.log(await getRightsByUserId(req.user.UserId));
   return res.json(await userController.getUsers(params.offset, params.limit));
+});
+
+app.get("/search", authVerify, async (req, res) => {
+  if (!(await rightsControl(req.user.UserId, "dashboard_view")))
+    return res.status(403).json({ create: false, msg: "permission denied" });
+  const params = req.query;
+  return res.json(await userController.search(params.q));
 });
 
 module.exports = app;

@@ -54,8 +54,11 @@ app.post("/wg-:id/users", authVerify, async (req, res) => {
     const data = req.body;
     if (!(await rightsControl(req.user.UserId, "workgroups_edit")))
       return res.status(403).json({ create: false, msg: "permission denied" });
+    let create = true;
+    console.log(data.create);
+    if (data.create !== undefined) create = data.create;
     return res.json({
-      update: await WorkGroupController.addUsers(id, data.userIds),
+      update: await WorkGroupController.changeUsers(id, data.userIds, create),
     });
   } catch ({ name, message }) {
     console.log(message);

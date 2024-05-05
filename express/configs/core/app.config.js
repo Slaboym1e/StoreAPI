@@ -1,7 +1,7 @@
 module.exports = {
   debug: true, //don't use in production
   disableLimits: true, //don't working if debug: false
-  disableRightsControl: true, //don't working if debug: false
+  disableRightsControl: false, //don't working if debug: false
   disableAuthVerify: false, //all requests are made as superuser (don't working if debug: false)
   //
   disableSignUp: false,

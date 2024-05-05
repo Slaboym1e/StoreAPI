@@ -1,6 +1,7 @@
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 const { Op } = require("sequelize");
+const { roleController } = require("./role.controller");
 
 const createRight = async (action) => {
   if (!!!action) return false;
@@ -58,7 +59,7 @@ const removeRight = async (rightId) => {
 
 const getRightByName = async (rightName) => {
   if (!!!rightName) return null;
-  return await models.Rights.findOne({ where: { name: rightName } });
+  return await models.Rights.findOne({ where: { action: rightName } });
 };
 
 const getRights = async (offset, limit) => {
@@ -70,14 +71,11 @@ const getRights = async (offset, limit) => {
   return await models.Rights.findAll(queryParams);
 };
 
-const getRightsByRoles = async (roleIds, actions) => {
+const getRightsByRoles = async (roleIds) => {
   if (!!!roleIds) return null;
   if (!Array.isArray(roleIds)) roleIds = [roleIds];
   const rights = await models.RoleRight.findAll({
-    include: [
-      { model: models.Rights, where: { action: { [Op.in]: actions } } },
-    ],
-    attributes: ["RightId"],
+    include: [{ model: models.Rights }],
     where: { RoleId: roleIds },
   });
   let resultArr = [];
@@ -87,10 +85,25 @@ const getRightsByRoles = async (roleIds, actions) => {
   return resultArr;
 };
 
+const getRightsByUserId = async (userId) => {
+  if (!!!userId) {
+    return null;
+  }
+  const roles = await roleController.getRolesByUser(userId);
+  let rolesId = roles.map((el) => el.RoleId);
+  const rights = await models.RoleRight.findAll({
+    include: [{ model: models.Rights }],
+    attributes: ["RightId"],
+    where: { RoleId: rolesId },
+  });
+  return rights.map((el) => el.Right.action);
+};
+
 module.exports = {
   createRight,
   editRight,
   getRightByName,
   getRights,
   getRightsByRoles,
+  getRightsByUserId,
 };

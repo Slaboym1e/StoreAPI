@@ -23,8 +23,23 @@ const eventsConroller = {
       return false;
     }
   },
-  //async edit(id) {},
-  //async remove(id) {},
+  async remove(id) {
+    if (!!!id) return false;
+    const t = await sequelize.transaction();
+    try {
+      await models.Achievements.destroy({
+        where: { EventId: id },
+        transaction: t,
+      });
+      await models.Events.destroy({ where: { id: id }, transaction: t });
+      t.commit();
+      return true;
+    } catch ({ name, message }) {
+      console.log(message);
+      t.rollback();
+      return false;
+    }
+  },
   async getById(id) {
     if (!!!id) return;
     return await models.Events.findOne({ where: { id: id } });
@@ -77,11 +92,8 @@ const eventsConroller = {
     return await models.Events.findAll({
       where: {
         [Op.or]: [
-          // prettier-ignore
-
-          {id:{ [Op.substring]: preRequest }},
-          // prettier-ignore
-          {title: { [Op.substring]: preRequest }},
+          { id: { [Op.substring]: preRequest } },
+          { title: { [Op.substring]: preRequest } },
           { description: { [Op.substring]: preRequest } },
           { start_date: { [Op.substring]: preRequest } },
           { end_date: { [Op.substring]: preRequest } },

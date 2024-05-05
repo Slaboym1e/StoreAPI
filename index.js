@@ -26,12 +26,12 @@ const connectDB = async () => {
 const init = async () => {
   await connectDB();
   if (await emptyDB()) {
-    const superRole = await roleController.add("Admin");
+    const superRole = await roleController.add("Admin", true);
     const superRight = await createRight("all");
     const superUser = await createAdmin(superRight.id, superRole.id);
     console.log("SuperUser succesfully create");
     await createCoreRights();
-    await roleController.add("User");
+    await roleController.add("User", true);
   }
   console.log("StoreAPI starting...");
   app.listen(PORT, () => {

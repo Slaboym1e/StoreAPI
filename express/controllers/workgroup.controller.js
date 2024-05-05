@@ -84,7 +84,7 @@ const WorkGroupController = {
     return await models.WorkGroup.findOne({ where: { id: id } });
   },
 
-  async addUsers(wgId, usersId) {
+  async changeUsers(wgId, usersId, create = true) {
     if (!!!wgId || !!!usersId) return null;
     let usersData = [];
     if (!Array.isArray(usersId)) {
@@ -92,10 +92,11 @@ const WorkGroupController = {
     } else usersData = [...usersId];
     console.log(wgId);
     console.log(usersData);
+    console.log(create ? wgId : null);
     const t = await sequelize.transaction();
     try {
       const res = await models.User.update(
-        { ClassId: wgId },
+        { ClassId: create ? wgId : null },
         { where: { id: { [Op.in]: usersData } } },
         { transaction: t }
       );

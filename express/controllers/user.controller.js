@@ -172,5 +172,21 @@ const userController = {
       order: [["soname", "ASC"]],
     });
   },
+  async search(searchString) {
+    if (!!!searchString || searchString === "") return false;
+    let preRequest = searchString.trim();
+    return await models.User.findAll({
+      attributes: ["id", "username", "email", "name", "soname"],
+      where: {
+        [Op.or]: [
+          { username: { [Op.substring]: preRequest } },
+          { email: { [Op.substring]: preRequest } },
+          { soname: { [Op.substring]: preRequest } },
+          { name: { [Op.substring]: preRequest } },
+        ],
+        status: 1,
+      },
+    });
+  },
 };
 module.exports = { userController };

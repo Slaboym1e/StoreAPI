@@ -66,6 +66,24 @@ const AchiveController = {
     queryParams.where = { EventId: id };
     return await models.Achievements.findAll(queryParams);
   },
+  async removeById(achieveId) {
+    if (!!!achieveId || achieveId < 1) return;
+    const t = await sequelize.transaction();
+    try {
+      await models.Achievements.destroy({
+        where: {
+          id: achieveId,
+        },
+        transaction: t,
+      });
+      await t.commit();
+      return true;
+    } catch (err) {
+      console.log(err);
+      await t.rollback();
+      return false;
+    }
+  },
 };
 
 module.exports = { AchiveController };

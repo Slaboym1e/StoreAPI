@@ -21,7 +21,7 @@ const { extraSetup } = require("./extras");
 const sequelize = new Sequelize({
   dialect: "sqlite",
   storage: "./database.sqlite",
-  logging: false,
+  logging: true,
 });
 
 const modelDefs = [

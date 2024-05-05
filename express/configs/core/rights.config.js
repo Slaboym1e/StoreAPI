@@ -19,4 +19,7 @@ module.exports = [
   "events_create",
   "events_edit",
   "events_remove",
+  "workgroups_create",
+  "workgroups_edit",
+  "workgroups_remove",
 ];

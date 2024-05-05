@@ -2,11 +2,14 @@ const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
 const roleController = {
-  async add(name) {
+  async add(name, deleteProtection = false) {
     if (!!!name) return false;
     const t = await sequelize.transaction();
     try {
-      const role = await models.Role.create({ name: name }, { transaction: t });
+      const role = await models.Role.create(
+        { name: name, delete_protection: deleteProtection },
+        { transaction: t }
+      );
       if (role !== null) {
         await t.commit();
         return role;
@@ -37,12 +40,18 @@ const roleController = {
     if (!!!roleId) return false;
     const t = await sequelize.transaction();
     try {
-      await models.Role.destroy(
-        {
-          where: { id: roleId },
-        },
-        { transaction: t }
-      );
+      await models.UserRoles.destroy({
+        where: { RoleId: roleId },
+        transaction: t,
+      });
+      await models.RoleRight.destroy({
+        where: { RoleId: roleId },
+        transaction: t,
+      });
+      await models.Role.destroy({
+        where: { id: roleId },
+        transaction: t,
+      });
       await t.commit();
       return true;
     } catch (err) {

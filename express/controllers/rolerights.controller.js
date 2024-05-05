@@ -1,5 +1,6 @@
 const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
+const { Op } = require("sequelize");
 
 const roleRightController = {
   async add(roleId, rightId) {
@@ -46,8 +47,10 @@ const roleRightController = {
         transaction: t,
       });
       await t.commit();
-      return rem[0];
+
+      return Boolean(rem[0]);
     } catch (err) {
+      console.log(err);
       t.rollback();
       return null;
     }

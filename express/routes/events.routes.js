@@ -67,6 +67,20 @@ app.put("/e-:id", authVerify, async (req, res) => {
   }
 });
 
+app.delete("/e-:id", authVerify, async (req, res) => {
+  try {
+    const id = getIdParam(req);
+    if (!(await rightsControl(req.user.UserId, "events_remove")))
+      return res.status(403).json({ create: false, msg: "permission denied" });
+    return res.json({ remove: await eventsConroller.remove(id) });
+  } catch ({ name, message }) {
+    console.log(message);
+    if (name === "TypeError")
+      return res.status(400).json({ msg: "uncorrect id" });
+    return res.status(400).json({ msg: "unexpect error" });
+  }
+});
+
 app.get("/e-:id/achievements", authVerify, async (req, res) => {
   try {
     const id = getIdParam(req);
@@ -83,7 +97,7 @@ app.get("/e-:id/achievements", authVerify, async (req, res) => {
 });
 
 app.get("/search", authVerify, async (req, res) => {
-  if (!(await rightsControl(req.user.UserId, "events_view")))
+  if (!(await rightsControl(req.user.UserId, "dashboard_view")))
     return res.status(403).json({ create: false, msg: "permission denied" });
   const params = req.query;
   return res.json(await eventsConroller.search(params.q));

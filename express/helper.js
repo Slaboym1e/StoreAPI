@@ -45,7 +45,6 @@ function getIdParam(req) {
   }
   throw new TypeError(`Invalid ':id' param: "${id}"`);
 }
-
 const rightsControl = async (userID, action) => {
   if (typeof userID === "undefined" || typeof action === "undefined")
     return false;
