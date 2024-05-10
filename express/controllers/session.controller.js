@@ -3,13 +3,12 @@ const sequelize = require("../../database/seq");
 const { jwtCreate } = require("../helpers/auth.helper");
 
 const sessionController = {
-  async add(User, userAgent) {
+  async add(User) {
     const t = await sequelize.transaction();
     try {
       const session = await models.UserSession.create(
         {
           UserId: User.id,
-          agent: userAgent,
         },
         { transaction: t }
       );

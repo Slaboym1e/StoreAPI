@@ -15,6 +15,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
       },
+      alias: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
+      },
     },
     { timestamps: false }
   );

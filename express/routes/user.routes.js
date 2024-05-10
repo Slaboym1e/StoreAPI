@@ -44,7 +44,7 @@ app.post("/signin", authLimits, async (req, res) => {
     if (genPasswordHash(req.body.password, user.salt) !== user.password) {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
-    const session = await sessionController.add(user, "Agent");
+    const session = await sessionController.add(user);
     // res.cookie("refreshToken", session.rt, {
     //   httpOnly: true,
     //   maxAge: "1728000000",
@@ -103,7 +103,7 @@ if (!config.disableSignUp)
       createUserRoleRel(User.id, role.id);
     }
     //
-    const session = await sessionController.add(User, "Agent");
+    const session = await sessionController.add(User);
     res.cookie("refreshToken", session.rt, { httpOnly: true });
     return res.status(201).json({
       signup: true,
@@ -352,8 +352,7 @@ app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
         data.name,
         data.soname,
         data.email,
-        data.about,
-        data.avatar
+        data.about
       ),
     });
   } catch ({ name, message }) {

@@ -32,7 +32,7 @@ const AchiveController = {
     queryParams.include = [
       {
         model: models.Events,
-        attributes: ["title", "description", "start_date", "end_date"],
+        attributes: ["title", "start_date", "end_date"],
       },
     ];
     queryParams.where = { UserId: id };
