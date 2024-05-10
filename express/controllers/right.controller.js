@@ -20,43 +20,6 @@ const createRight = async (action) => {
   }
 };
 
-const editRight = async (actionId, action) => {
-  if (!!!actionId || !!!action) return false;
-  const t = await sequelize.transaction();
-  try {
-    const right = await models.Rights.update(
-      { action: action },
-      { where: { id: actionId } },
-      { transaction: t }
-    );
-    await t.commit();
-    if (right[0] !== 1) return false;
-    return true;
-  } catch (err) {
-    await t.rollback();
-    return false;
-  }
-};
-
-const removeRight = async (rightId) => {
-  if (!!!rightId) return false;
-  const t = await sequelize.transaction();
-  try {
-    await models.Rights.destroy(
-      {
-        where: { id: roleId },
-      },
-      { transaction: t }
-    );
-    await t.commit();
-    return true;
-  } catch (err) {
-    t.rollback();
-    console.log("remove - ERROR:" + err);
-    return false;
-  }
-};
-
 const getRightByName = async (rightName) => {
   if (!!!rightName) return null;
   return await models.Rights.findOne({ where: { action: rightName } });
@@ -101,7 +64,6 @@ const getRightsByUserId = async (userId) => {
 
 module.exports = {
   createRight,
-  editRight,
   getRightByName,
   getRights,
   getRightsByRoles,

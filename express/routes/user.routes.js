@@ -69,59 +69,6 @@ app.post("/signin", authLimits, async (req, res) => {
   }
 });
 
-if (!config.disableSignUp)
-  app.post("/signup", authLimits, async (req, res) => {
-    if (
-      !!!req.body.username ||
-      !!!req.body.email ||
-      !!!req.body.password ||
-      !!!req.body.repassword
-    )
-      return res.status(400).json({ signup: false, message: "empty request" });
-    if (!isEmail(req.body.email))
-      return res
-        .status(401)
-        .json({ signup: false, msg: "incorrect email address" });
-    if (
-      req.body.password.length < 8 ||
-      req.body.password !== req.body.repassword
-    )
-      return res.status(401).json({ signup: false, msg: "wrong password" });
-    else if (req.body.password.length < 3)
-      return res.status(401).json({ signup: false, msg: "wrong username" });
-    const User = await userController.add(
-      req.body.username,
-      req.body.email,
-      req.body.password
-    );
-    console.log(User);
-    if (!!!User) return res.status(401).json({ signup: false, code: 2 });
-    console.log(req);
-    //
-    const role = roleController.getRoleByName("User");
-    if (role !== null) {
-      createUserRoleRel(User.id, role.id);
-    }
-    //
-    const session = await sessionController.add(User);
-    res.cookie("refreshToken", session.rt, { httpOnly: true });
-    return res.status(201).json({
-      signup: true,
-      access_token: session.jwt,
-      expires_in: 3600,
-      type: "Bearer",
-      permissions: [],
-      user: {
-        id: User.id,
-        username: User.username,
-        email: User.email,
-        status: User.status,
-        name: User.name,
-        soname: User.soname,
-      },
-    });
-  });
-
 app.post("/refresh", authLimits, async (req, res) => {
   const Token = getAuthHeader(req);
   console.log(Token);

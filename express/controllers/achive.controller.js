@@ -2,7 +2,7 @@ const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
 const AchiveController = {
-  async add(title, userId, eventId, ModeratorId) {
+  async add(title, userId, eventId) {
     if (!!!title || !!!userId || !!!eventId) return;
     const t = await sequelize.transaction();
     try {
