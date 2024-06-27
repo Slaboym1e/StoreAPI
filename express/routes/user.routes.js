@@ -45,10 +45,6 @@ app.post("/signin", authLimits, async (req, res) => {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
     const session = await sessionController.add(user);
-    // res.cookie("refreshToken", session.rt, {
-    //   httpOnly: true,
-    //   maxAge: "1728000000",
-    // });
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
@@ -71,16 +67,12 @@ app.post("/signin", authLimits, async (req, res) => {
 
 app.post("/refresh", authLimits, async (req, res) => {
   const Token = getAuthHeader(req);
-  console.log(Token);
-  // const refreshCookie = req.cookies.refreshToken;
-  // console.log(req.cookies);
   if (!!!Token) {
     console.log("REFRESH - FALSE; Token UNAVAILABLE");
     return res
       .status(401)
       .json({ refresh: false, msg: "cookie is unavailable" });
   }
-  console.log(Token.token);
   let verifyData = jwtVerify(Token.token);
   if (!verifyData.valid)
     return res.status(401).json({ response: false, message: "Bad token" });
