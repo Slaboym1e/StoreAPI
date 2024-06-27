@@ -2,7 +2,7 @@ const { models } = require("../../database/seq");
 const sequelize = require("../../database/seq");
 
 const AchiveController = {
-  async add(title, userId, eventId, ModeratorId) {
+  async add(title, userId, eventId) {
     if (!!!title || !!!userId || !!!eventId) return;
     const t = await sequelize.transaction();
     try {
@@ -32,7 +32,7 @@ const AchiveController = {
     queryParams.include = [
       {
         model: models.Events,
-        attributes: ["title", "description", "start_date", "end_date"],
+        attributes: ["title", "start_date", "end_date"],
       },
     ];
     queryParams.where = { UserId: id };

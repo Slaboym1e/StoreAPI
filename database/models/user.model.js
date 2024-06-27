@@ -17,10 +17,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       type: DataTypes.STRING(128),
     },
-    avatar: {
-      allowNull: true,
-      type: DataTypes.STRING(128),
-    },
+
     password: {
       allowNull: false,
       type: DataTypes.STRING(64),

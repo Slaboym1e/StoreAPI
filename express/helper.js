@@ -72,11 +72,7 @@ const rightsControl = async (userID, action) => {
   }
   console.log(roleArr);
   const rights = await getRightsByRoles(roleArr, inArr);
-  // const rights = await models.RoleRight.findAll({
-  //   include: [{model:models.Rights, where:{ action: {[Op.in]: inArr}}}],
-  //   attributes: ["RightId"],
-  //   where: { RoleId: roleArr},
-  // });
+
   for (const def of rights) {
     if (def.action == "all" || def.action == action) return true;
   }

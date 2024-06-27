@@ -42,14 +42,13 @@ const userController = {
       return false;
     }
   },
-  async edit(userId, username, name, soname, email, about, avatar) {
+  async edit(userId, username, name, soname, email, about) {
     if (!!!userId) {
       return false;
     }
     let attr = {};
     if (username !== undefined) attr.username = username;
     if (email !== undefined && isEmail(email)) attr.email = email;
-    if (avatar !== undefined) attr.avatar = avatar;
     if (name !== undefined) attr.name = name;
     if (soname !== undefined) attr.soname = soname;
     if (about !== undefined) attr.about = about;
@@ -96,7 +95,6 @@ const userController = {
         {
           status: 3,
           username: "DeletedUser",
-          avatar: null,
           email: generateString(16) + "@del.del",
         },
         {

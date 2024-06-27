@@ -44,11 +44,7 @@ app.post("/signin", authLimits, async (req, res) => {
     if (genPasswordHash(req.body.password, user.salt) !== user.password) {
       return res.status(401).json({ signin: false, msg: "wrong password" });
     }
-    const session = await sessionController.add(user, "Agent");
-    // res.cookie("refreshToken", session.rt, {
-    //   httpOnly: true,
-    //   maxAge: "1728000000",
-    // });
+    const session = await sessionController.add(user);
     return res.status(200).json({
       signin: true,
       access_token: session.jwt,
@@ -69,71 +65,14 @@ app.post("/signin", authLimits, async (req, res) => {
   }
 });
 
-if (!config.disableSignUp)
-  app.post("/signup", authLimits, async (req, res) => {
-    if (
-      !!!req.body.username ||
-      !!!req.body.email ||
-      !!!req.body.password ||
-      !!!req.body.repassword
-    )
-      return res.status(400).json({ signup: false, message: "empty request" });
-    if (!isEmail(req.body.email))
-      return res
-        .status(401)
-        .json({ signup: false, msg: "incorrect email address" });
-    if (
-      req.body.password.length < 8 ||
-      req.body.password !== req.body.repassword
-    )
-      return res.status(401).json({ signup: false, msg: "wrong password" });
-    else if (req.body.password.length < 3)
-      return res.status(401).json({ signup: false, msg: "wrong username" });
-    const User = await userController.add(
-      req.body.username,
-      req.body.email,
-      req.body.password
-    );
-    console.log(User);
-    if (!!!User) return res.status(401).json({ signup: false, code: 2 });
-    console.log(req);
-    //
-    const role = roleController.getRoleByName("User");
-    if (role !== null) {
-      createUserRoleRel(User.id, role.id);
-    }
-    //
-    const session = await sessionController.add(User, "Agent");
-    res.cookie("refreshToken", session.rt, { httpOnly: true });
-    return res.status(201).json({
-      signup: true,
-      access_token: session.jwt,
-      expires_in: 3600,
-      type: "Bearer",
-      permissions: [],
-      user: {
-        id: User.id,
-        username: User.username,
-        email: User.email,
-        status: User.status,
-        name: User.name,
-        soname: User.soname,
-      },
-    });
-  });
-
 app.post("/refresh", authLimits, async (req, res) => {
   const Token = getAuthHeader(req);
-  console.log(Token);
-  // const refreshCookie = req.cookies.refreshToken;
-  // console.log(req.cookies);
   if (!!!Token) {
     console.log("REFRESH - FALSE; Token UNAVAILABLE");
     return res
       .status(401)
       .json({ refresh: false, msg: "cookie is unavailable" });
   }
-  console.log(Token.token);
   let verifyData = jwtVerify(Token.token);
   if (!verifyData.valid)
     return res.status(401).json({ response: false, message: "Bad token" });
@@ -352,8 +291,7 @@ app.put("/u-:id", baseLimits, authVerify, async (req, res) => {
         data.name,
         data.soname,
         data.email,
-        data.about,
-        data.avatar
+        data.about
       ),
     });
   } catch ({ name, message }) {
